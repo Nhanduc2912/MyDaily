@@ -2,11 +2,9 @@
 -- MyDaily - Database Schema Migration 001
 -- Full initial schema with soft-delete & state
 -- =============================================
-
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pg_trgm"; -- for text search
-
 -- =============================================
 -- 1. PROFILES (extends auth.users)
 -- =============================================
@@ -31,7 +29,6 @@ CREATE TABLE profiles (
   created_at      TIMESTAMPTZ DEFAULT NOW(),
   updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
-
 -- =============================================
 -- 2. PROFILE STATE LOGS (audit trail)
 -- =============================================
@@ -44,7 +41,6 @@ CREATE TABLE profile_state_logs (
   changed_by  UUID REFERENCES profiles(id),
   created_at  TIMESTAMPTZ DEFAULT NOW()
 );
-
 -- =============================================
 -- 3. USER DEVICES (push notifications)
 -- =============================================
@@ -60,7 +56,6 @@ CREATE TABLE user_devices (
   created_at      TIMESTAMPTZ DEFAULT NOW(),
   updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
-
 -- =============================================
 -- 4. THEME TIME SLOTS
 -- =============================================
@@ -76,7 +71,6 @@ CREATE TABLE theme_time_slots (
   created_at  TIMESTAMPTZ DEFAULT NOW(),
   updated_at  TIMESTAMPTZ DEFAULT NOW()
 );
-
 -- =============================================
 -- 5. THEMES (admin-managed)
 -- =============================================
@@ -100,7 +94,6 @@ CREATE TABLE themes (
   created_at      TIMESTAMPTZ DEFAULT NOW(),
   updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
-
 -- =============================================
 -- 6. DAILY PAGES (1 per user per day)
 -- =============================================
@@ -122,7 +115,6 @@ CREATE TABLE daily_pages (
   updated_at          TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(user_id, page_date)
 );
-
 -- =============================================
 -- 7. POSTS (photos by time slot)
 -- =============================================
@@ -152,7 +144,6 @@ CREATE TABLE posts (
   created_at          TIMESTAMPTZ DEFAULT NOW(),
   updated_at          TIMESTAMPTZ DEFAULT NOW()
 );
-
 -- =============================================
 -- 8. POST MODERATION LOGS
 -- =============================================
@@ -165,7 +156,6 @@ CREATE TABLE post_moderation_logs (
   actioned_by UUID NOT NULL REFERENCES profiles(id),
   created_at  TIMESTAMPTZ DEFAULT NOW()
 );
-
 -- =============================================
 -- 9. TODOS
 -- =============================================
@@ -184,7 +174,6 @@ CREATE TABLE todos (
   created_at  TIMESTAMPTZ DEFAULT NOW(),
   updated_at  TIMESTAMPTZ DEFAULT NOW()
 );
-
 -- =============================================
 -- 10. NOTES
 -- =============================================
@@ -201,7 +190,6 @@ CREATE TABLE notes (
   created_at  TIMESTAMPTZ DEFAULT NOW(),
   updated_at  TIMESTAMPTZ DEFAULT NOW()
 );
-
 -- =============================================
 -- 11. DAY PLANS (for tomorrow)
 -- =============================================
@@ -221,7 +209,6 @@ CREATE TABLE day_plans (
   created_at   TIMESTAMPTZ DEFAULT NOW(),
   updated_at   TIMESTAMPTZ DEFAULT NOW()
 );
-
 -- =============================================
 -- 12. FRIENDSHIPS
 -- =============================================
@@ -236,7 +223,6 @@ CREATE TABLE friendships (
   UNIQUE(requester_id, addressee_id),
   CHECK (requester_id != addressee_id)
 );
-
 -- =============================================
 -- 13. REACTIONS (emoji on posts)
 -- =============================================
@@ -248,7 +234,6 @@ CREATE TABLE reactions (
   created_at  TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(post_id, user_id, emoji)
 );
-
 -- =============================================
 -- 14. POST REPORTS
 -- =============================================
@@ -264,7 +249,6 @@ CREATE TABLE post_reports (
   created_at      TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(post_id, reporter_id)
 );
-
 -- =============================================
 -- 15. STREAK LOGS
 -- =============================================
@@ -278,7 +262,6 @@ CREATE TABLE streak_logs (
   created_at      TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(user_id, log_date)
 );
-
 -- =============================================
 -- 16. BADGES
 -- =============================================
@@ -296,7 +279,6 @@ CREATE TABLE badges (
   created_at      TIMESTAMPTZ DEFAULT NOW(),
   updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
-
 -- =============================================
 -- 17. USER BADGES
 -- =============================================
@@ -307,7 +289,6 @@ CREATE TABLE user_badges (
   earned_at   TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(user_id, badge_id)
 );
-
 -- =============================================
 -- 18. MONTHLY STATS
 -- =============================================
@@ -325,7 +306,6 @@ CREATE TABLE monthly_stats (
   updated_at          TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(user_id, year_month)
 );
-
 -- =============================================
 -- 19. NOTIFICATIONS
 -- =============================================
@@ -348,7 +328,6 @@ CREATE TABLE notifications (
   created_at      TIMESTAMPTZ DEFAULT NOW()
   -- No is_deleted: hard-deleted after 90 days via cron
 );
-
 -- =============================================
 -- 20. APP SETTINGS
 -- =============================================
@@ -361,7 +340,6 @@ CREATE TABLE app_settings (
   created_at  TIMESTAMPTZ DEFAULT NOW(),
   updated_at  TIMESTAMPTZ DEFAULT NOW()
 );
-
 -- =============================================
 -- 21. ADMIN ACTION LOGS
 -- =============================================
@@ -376,7 +354,6 @@ CREATE TABLE admin_action_logs (
   created_at  TIMESTAMPTZ DEFAULT NOW()
   -- Hard-deleted after 1 year via cron
 );
-
 -- =============================================
 -- 22. PUSH NOTIFICATION LOGS
 -- =============================================
@@ -392,38 +369,30 @@ CREATE TABLE push_notification_logs (
   created_at  TIMESTAMPTZ DEFAULT NOW()
   -- Hard-deleted after 30 days via cron
 );
-
 -- =============================================
 -- INDEXES for performance
 -- =============================================
 CREATE INDEX idx_profiles_username ON profiles USING gin(username gin_trgm_ops);
 CREATE INDEX idx_profiles_role ON profiles(role);
 CREATE INDEX idx_profiles_state ON profiles(state) WHERE is_deleted = FALSE;
-
 CREATE INDEX idx_daily_pages_user_date ON daily_pages(user_id, page_date DESC);
 CREATE INDEX idx_daily_pages_token ON daily_pages(share_link_token);
-
 CREATE INDEX idx_posts_page_id ON posts(page_id);
 CREATE INDEX idx_posts_user_id ON posts(user_id);
 CREATE INDEX idx_posts_taken_at ON posts(taken_at DESC);
 CREATE INDEX idx_posts_moderation ON posts(moderation_state) WHERE is_deleted = FALSE;
 CREATE INDEX idx_posts_flagged ON posts(is_flagged) WHERE is_flagged = TRUE;
-
 CREATE INDEX idx_todos_page_id ON todos(page_id);
 CREATE INDEX idx_notes_page_id ON notes(page_id);
 CREATE INDEX idx_day_plans_user_date ON day_plans(user_id, plan_date);
-
 CREATE INDEX idx_friendships_requester ON friendships(requester_id);
 CREATE INDEX idx_friendships_addressee ON friendships(addressee_id);
 CREATE INDEX idx_friendships_state ON friendships(state);
-
 CREATE INDEX idx_reactions_post_id ON reactions(post_id);
 CREATE INDEX idx_post_reports_state ON post_reports(state);
-
 CREATE INDEX idx_streak_logs_user_date ON streak_logs(user_id, log_date DESC);
 CREATE INDEX idx_notifications_user_unread ON notifications(user_id, is_read) WHERE is_read = FALSE;
 CREATE INDEX idx_notifications_user_date ON notifications(user_id, created_at DESC);
-
 -- =============================================
 -- UPDATED_AT TRIGGER FUNCTION
 -- =============================================
@@ -434,7 +403,6 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
 -- Apply trigger to all tables with updated_at
 DO $$
 DECLARE
@@ -453,7 +421,6 @@ BEGIN
   END LOOP;
 END;
 $$;
-
 -- =============================================
 -- AUTO-CREATE PROFILE ON SIGNUP
 -- =============================================
@@ -479,7 +446,6 @@ BEGIN
     counter := counter + 1;
     final_username := base_username || counter::TEXT;
   END LOOP;
-
   INSERT INTO profiles (id, username, display_name, avatar_url)
   VALUES (
     NEW.id,
@@ -490,11 +456,9 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
-
 -- =============================================
 -- SEED: Default time slots
 -- =============================================
@@ -507,7 +471,6 @@ INSERT INTO theme_time_slots (name, start_hour, end_hour, icon, color_hex, sort_
   ('Buổi tối',   19, 22, '🌙', '#EDE7F6', 6),
   ('Đêm khuya',  22, 24, '🦉', '#E8EAF6', 7),
   ('Nửa đêm',    0,  5,  '⭐', '#212121', 8);
-
 -- =============================================
 -- SEED: Default themes
 -- =============================================
@@ -530,7 +493,6 @@ FROM (VALUES
   ('Mất ngủ', 'Sleepless', '😶', 'Nửa đêm')
 ) AS t(name_vi, name_en, icon, slot_name)
 JOIN theme_time_slots ts ON ts.name = t.slot_name;
-
 -- =============================================
 -- SEED: Default badges
 -- =============================================
@@ -543,7 +505,6 @@ INSERT INTO badges (code, name_vi, name_en, description_vi, icon, condition_type
   ('FIRST_POST',   'Bước Đầu',     'First Step',    'Đăng ảnh đầu tiên', '📸', 'post_count', '{"count": 1}', 'common'),
   ('WEEK_WARRIOR', 'Chiến Binh',   'Week Warrior',  'Streak 7 ngày', '⚔️', 'streak_days', '{"days": 7}', 'common'),
   ('CENTURION',    'Bách Nhật',    'Centurion',     'Streak 100 ngày', '💯', 'streak_days', '{"days": 100}', 'legendary');
-
 -- =============================================
 -- SEED: Default app settings
 -- =============================================
