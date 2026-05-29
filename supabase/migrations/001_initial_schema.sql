@@ -63,7 +63,7 @@ CREATE TABLE theme_time_slots (
   id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name        TEXT NOT NULL,
   start_hour  INT NOT NULL CHECK (start_hour BETWEEN 0 AND 23),
-  end_hour    INT NOT NULL CHECK (end_hour BETWEEN 0 AND 23),
+  end_hour    INT NOT NULL CHECK (end_hour BETWEEN 0 AND 24),
   icon        TEXT,
   color_hex   TEXT,
   sort_order  INT DEFAULT 0,
