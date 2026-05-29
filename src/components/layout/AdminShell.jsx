@@ -30,7 +30,7 @@ export default function AdminShell({ children, title }) {
   }
 
   return (
-    <div style={{
+    <div className="admin-shell" style={{
       minHeight: '100dvh',
       background: 'var(--color-surface-2)',
       maxWidth: '100vw',

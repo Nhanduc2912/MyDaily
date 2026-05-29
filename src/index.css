@@ -187,3 +187,8 @@ body {
 /* Page transition */
 .page-enter { opacity: 0; transform: translateY(8px); }
 .page-enter-active { opacity: 1; transform: translateY(0); transition: all 0.25s ease; }
+
+/* Admin override - full width */
+body:has(.admin-shell) {
+  max-width: 100%;
+}
