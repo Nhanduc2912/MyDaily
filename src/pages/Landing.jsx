@@ -69,7 +69,7 @@ export default function Landing() {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-screen bg-white overflow-hidden">
+    <div className="landing-page min-h-screen bg-white overflow-hidden">
       {/* Hero Section */}
       <section className="relative px-5 pt-14 pb-10">
         {/* Decorative gradient blobs */}

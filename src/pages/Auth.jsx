@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabaseClient'
 import { useAuthStore } from '@/store/authStore'
-import { Mail, Lock, User, Eye, EyeOff, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const GoogleIcon = () => (
@@ -115,9 +114,18 @@ export default function Auth() {
           throw new Error('Email này đã được sử dụng')
         }
 
-        setVerifyEmail(form.email)
-        setMode('verify')
-        toast.success('Đã gửi email xác thực!')
+        // Check if email confirmation is required
+        if (data.session) {
+          // Auto-confirmed (email confirmation disabled in Supabase)
+          setUser(data.user)
+          await fetchProfile(data.user.id)
+          toast.success('Tạo tài khoản thành công!')
+          navigate('/dashboard')
+        } else {
+          setVerifyEmail(form.email)
+          setMode('verify')
+          toast.success('Đã gửi email xác thực!')
+        }
       }
 
       if (mode === 'forgot') {
@@ -134,9 +142,16 @@ export default function Auth() {
         toast.error('Email hoặc mật khẩu không đúng')
       } else if (msg.includes('Email not confirmed')) {
         toast.error('Vui lòng xác thực email trước khi đăng nhập')
+      } else if (msg.includes('User already registered')) {
+        toast.error('Email này đã được đăng ký')
+      } else if (msg.includes('Signups not allowed')) {
+        toast.error('Đăng ký tạm thời bị tắt. Vui lòng liên hệ admin.')
+      } else if (msg.includes('Database error')) {
+        toast.error('Lỗi hệ thống. Vui lòng thử lại sau.')
       } else {
         toast.error(msg || 'Có lỗi xảy ra')
       }
+      console.error('Auth error:', err)
     } finally {
       setLoading(false)
     }
@@ -155,27 +170,45 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div style={{
+      minHeight: '100dvh',
+      background: 'white',
+      display: 'flex',
+      flexDirection: 'column',
+    }}>
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="px-5 pt-4 pb-2"
+        style={{ padding: '16px 20px 8px' }}
       >
         <button
           onClick={() => {
             if (mode === 'verify' || mode === 'forgot') setMode('login')
             else navigate('/')
           }}
-          className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 tap-highlight py-2"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            fontSize: 14,
+            color: '#64748b',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: '8px 0',
+            fontFamily: 'var(--font-sans)',
+          }}
         >
-          <ArrowLeft size={18} />
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>
+          </svg>
           <span>{mode === 'verify' || mode === 'forgot' ? 'Quay lại' : 'Trang chủ'}</span>
         </button>
       </motion.div>
 
       {/* Content */}
-      <div className="flex-1 px-5 pt-4 pb-8">
+      <div style={{ flex: 1, padding: '16px 20px 32px' }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={mode}
@@ -185,33 +218,59 @@ export default function Auth() {
             transition={{ duration: 0.25 }}
           >
             {/* Title */}
-            <div className="mb-8">
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">{titles[mode].title}</h1>
-              <p className="text-sm text-gray-500">
+            <div style={{ marginBottom: 32 }}>
+              <h1 style={{
+                fontSize: 26,
+                fontWeight: 800,
+                color: '#0f172a',
+                margin: '0 0 4px',
+              }}>
+                {titles[mode].title}
+              </h1>
+              <p style={{ fontSize: 14, color: '#64748b', margin: 0 }}>
                 {titles[mode].subtitle}
                 {mode === 'verify' && (
-                  <span className="block mt-1 font-semibold text-orange-600">{verifyEmail}</span>
+                  <span style={{
+                    display: 'block',
+                    marginTop: 4,
+                    fontWeight: 600,
+                    color: '#ea580c',
+                  }}>
+                    {verifyEmail}
+                  </span>
                 )}
               </p>
             </div>
 
             {/* Verify screen */}
             {mode === 'verify' && (
-              <div className="text-center py-8">
+              <div style={{ textAlign: 'center', padding: '32px 0' }}>
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: 'spring', delay: 0.2 }}
-                  className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-6"
+                  style={{
+                    width: 80, height: 80,
+                    borderRadius: '50%',
+                    background: '#ecfdf5',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 24px',
+                  }}
                 >
-                  <CheckCircle2 size={40} className="text-green-500" />
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                  </svg>
                 </motion.div>
-                <p className="text-sm text-gray-500 mb-6">
+                <p style={{ fontSize: 14, color: '#64748b', marginBottom: 24 }}>
                   Vui lòng mở email và nhấn vào link xác thực để hoàn tất đăng ký.
                 </p>
                 <button
                   onClick={() => setMode('login')}
-                  className="btn btn-primary w-full rounded-2xl py-3.5"
+                  className="btn btn-primary"
+                  style={{ width: '100%', borderRadius: 16, padding: '14px 20px' }}
                 >
                   Đã xác thực? Đăng nhập
                 </button>
@@ -220,7 +279,7 @@ export default function Auth() {
 
             {/* Login/Register/Forgot form */}
             {mode !== 'verify' && (
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {/* Google OAuth */}
                 {mode !== 'forgot' && (
                   <>
@@ -228,17 +287,33 @@ export default function Auth() {
                       type="button"
                       onClick={handleGoogleLogin}
                       disabled={loading}
-                      className="w-full flex items-center justify-center gap-3 py-3.5 rounded-2xl border-2 border-gray-100 bg-white hover:bg-gray-50 transition-colors font-semibold text-[15px] text-gray-700 tap-highlight"
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 12,
+                        padding: '14px 20px',
+                        borderRadius: 16,
+                        border: '2px solid #f1f5f9',
+                        background: 'white',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        fontSize: 15,
+                        color: '#374151',
+                        fontFamily: 'var(--font-sans)',
+                        transition: 'all 0.2s',
+                      }}
                     >
                       <GoogleIcon />
                       Tiếp tục với Google
                     </button>
 
                     {/* Divider */}
-                    <div className="flex items-center gap-3 my-2">
-                      <div className="flex-1 h-px bg-gray-100" />
-                      <span className="text-xs text-gray-400 font-medium">hoặc</span>
-                      <div className="flex-1 h-px bg-gray-100" />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '4px 0' }}>
+                      <div style={{ flex: 1, height: 1, background: '#f1f5f9' }} />
+                      <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500 }}>hoặc</span>
+                      <div style={{ flex: 1, height: 1, background: '#f1f5f9' }} />
                     </div>
                   </>
                 )}
@@ -246,106 +321,148 @@ export default function Auth() {
                 {/* Display Name (register only) */}
                 {mode === 'register' && (
                   <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1.5 block">Tên hiển thị</label>
-                    <div className="relative">
-                      <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <label style={labelStyle}>Tên hiển thị</label>
+                    <div style={{ position: 'relative' }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={iconStyle}>
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                      </svg>
                       <input
                         type="text"
                         value={form.displayName}
                         onChange={(e) => updateField('displayName', e.target.value)}
                         placeholder="Nhập tên của bạn"
-                        className={`input-base pl-11 ${errors.displayName ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''}`}
+                        className="input-base"
+                        style={{
+                          paddingLeft: 44,
+                          ...(errors.displayName ? { borderColor: '#fca5a5' } : {}),
+                        }}
                       />
                     </div>
-                    {errors.displayName && (
-                      <p className="flex items-center gap-1 text-xs text-red-500 mt-1">
-                        <AlertCircle size={12} /> {errors.displayName}
-                      </p>
-                    )}
+                    {errors.displayName && <p style={errorStyle}>⚠ {errors.displayName}</p>}
                   </div>
                 )}
 
                 {/* Email */}
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-1.5 block">Email</label>
-                  <div className="relative">
-                    <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <label style={labelStyle}>Email</label>
+                  <div style={{ position: 'relative' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={iconStyle}>
+                      <rect width="20" height="16" x="2" y="4" rx="2"/>
+                      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                    </svg>
                     <input
                       type="email"
                       value={form.email}
                       onChange={(e) => updateField('email', e.target.value)}
                       placeholder="email@example.com"
-                      className={`input-base pl-11 ${errors.email ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''}`}
+                      className="input-base"
+                      style={{
+                        paddingLeft: 44,
+                        ...(errors.email ? { borderColor: '#fca5a5' } : {}),
+                      }}
                       autoComplete="email"
                     />
                   </div>
-                  {errors.email && (
-                    <p className="flex items-center gap-1 text-xs text-red-500 mt-1">
-                      <AlertCircle size={12} /> {errors.email}
-                    </p>
-                  )}
+                  {errors.email && <p style={errorStyle}>⚠ {errors.email}</p>}
                 </div>
 
                 {/* Password */}
                 {mode !== 'forgot' && (
                   <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1.5 block">Mật khẩu</label>
-                    <div className="relative">
-                      <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <label style={labelStyle}>Mật khẩu</label>
+                    <div style={{ position: 'relative' }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={iconStyle}>
+                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                      </svg>
                       <input
                         type={showPassword ? 'text' : 'password'}
                         value={form.password}
                         onChange={(e) => updateField('password', e.target.value)}
                         placeholder="••••••••"
-                        className={`input-base pl-11 pr-11 ${errors.password ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''}`}
+                        className="input-base"
+                        style={{
+                          paddingLeft: 44,
+                          paddingRight: 44,
+                          ...(errors.password ? { borderColor: '#fca5a5' } : {}),
+                        }}
                         autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                        style={{
+                          position: 'absolute',
+                          right: 12,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: 4,
+                          color: '#94a3b8',
+                          display: 'flex',
+                        }}
                       >
-                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        {showPassword ? (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                            <line x1="1" y1="1" x2="23" y2="23"/>
+                          </svg>
+                        ) : (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                          </svg>
+                        )}
                       </button>
                     </div>
-                    {errors.password && (
-                      <p className="flex items-center gap-1 text-xs text-red-500 mt-1">
-                        <AlertCircle size={12} /> {errors.password}
-                      </p>
-                    )}
+                    {errors.password && <p style={errorStyle}>⚠ {errors.password}</p>}
                   </div>
                 )}
 
                 {/* Confirm Password (register) */}
                 {mode === 'register' && (
                   <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1.5 block">Xác nhận mật khẩu</label>
-                    <div className="relative">
-                      <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <label style={labelStyle}>Xác nhận mật khẩu</label>
+                    <div style={{ position: 'relative' }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={iconStyle}>
+                        <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                      </svg>
                       <input
                         type={showPassword ? 'text' : 'password'}
                         value={form.confirmPassword}
                         onChange={(e) => updateField('confirmPassword', e.target.value)}
                         placeholder="••••••••"
-                        className={`input-base pl-11 ${errors.confirmPassword ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''}`}
+                        className="input-base"
+                        style={{
+                          paddingLeft: 44,
+                          ...(errors.confirmPassword ? { borderColor: '#fca5a5' } : {}),
+                        }}
                         autoComplete="new-password"
                       />
                     </div>
-                    {errors.confirmPassword && (
-                      <p className="flex items-center gap-1 text-xs text-red-500 mt-1">
-                        <AlertCircle size={12} /> {errors.confirmPassword}
-                      </p>
-                    )}
+                    {errors.confirmPassword && <p style={errorStyle}>⚠ {errors.confirmPassword}</p>}
                   </div>
                 )}
 
                 {/* Forgot password link */}
                 {mode === 'login' && (
-                  <div className="text-right">
+                  <div style={{ textAlign: 'right' }}>
                     <button
                       type="button"
                       onClick={() => setMode('forgot')}
-                      className="text-sm text-orange-600 font-medium hover:text-orange-700"
+                      style={{
+                        fontSize: 14,
+                        color: '#ea580c',
+                        fontWeight: 500,
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontFamily: 'var(--font-sans)',
+                      }}
                     >
                       Quên mật khẩu?
                     </button>
@@ -356,10 +473,24 @@ export default function Auth() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="btn btn-primary w-full rounded-2xl py-3.5 mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="btn btn-primary"
+                  style={{
+                    width: '100%',
+                    borderRadius: 16,
+                    padding: '14px 20px',
+                    marginTop: 8,
+                    opacity: loading ? 0.6 : 1,
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                  }}
                 >
                   {loading ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div style={{
+                      width: 20, height: 20,
+                      border: '2px solid rgba(255,255,255,0.3)',
+                      borderTopColor: 'white',
+                      borderRadius: '50%',
+                      animation: 'spin 0.7s linear infinite',
+                    }} />
                   ) : (
                     {
                       login: 'Đăng nhập',
@@ -371,7 +502,12 @@ export default function Auth() {
 
                 {/* Switch mode */}
                 {mode !== 'forgot' && (
-                  <p className="text-center text-sm text-gray-500 mt-4">
+                  <p style={{
+                    textAlign: 'center',
+                    fontSize: 14,
+                    color: '#64748b',
+                    marginTop: 16,
+                  }}>
                     {mode === 'login' ? 'Chưa có tài khoản? ' : 'Đã có tài khoản? '}
                     <button
                       type="button"
@@ -379,7 +515,15 @@ export default function Auth() {
                         setMode(mode === 'login' ? 'register' : 'login')
                         setErrors({})
                       }}
-                      className="text-orange-600 font-semibold hover:text-orange-700"
+                      style={{
+                        color: '#ea580c',
+                        fontWeight: 600,
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontFamily: 'var(--font-sans)',
+                        fontSize: 14,
+                      }}
                     >
                       {mode === 'login' ? 'Đăng ký' : 'Đăng nhập'}
                     </button>
@@ -392,11 +536,46 @@ export default function Auth() {
       </div>
 
       {/* Bottom decoration */}
-      <div className="px-5 pb-6">
-        <p className="text-center text-[11px] text-gray-400">
+      <div style={{ padding: '0 20px 24px' }}>
+        <p style={{
+          textAlign: 'center',
+          fontSize: 11,
+          color: '#94a3b8',
+        }}>
           Bằng việc đăng ký, bạn đồng ý với Điều khoản sử dụng và Chính sách bảo mật của MyDaily.
         </p>
       </div>
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   )
+}
+
+const labelStyle = {
+  fontSize: 14,
+  fontWeight: 500,
+  color: '#374151',
+  display: 'block',
+  marginBottom: 6,
+}
+
+const iconStyle = {
+  position: 'absolute',
+  left: 16,
+  top: '50%',
+  transform: 'translateY(-50%)',
+  pointerEvents: 'none',
+}
+
+const errorStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 4,
+  fontSize: 12,
+  color: '#ef4444',
+  marginTop: 4,
 }

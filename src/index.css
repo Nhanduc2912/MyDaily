@@ -62,6 +62,15 @@ body {
   position: relative;
 }
 
+/* Desktop: wider body + shadow for phone-preview feel */
+@media (min-width: 640px) {
+  body {
+    box-shadow: 0 0 60px rgba(0, 0, 0, 0.08);
+    border-left: 1px solid var(--color-border);
+    border-right: 1px solid var(--color-border);
+  }
+}
+
 /* PWA safe area */
 .safe-top    { padding-top: env(safe-area-inset-top); }
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
@@ -115,6 +124,10 @@ body {
 .input-base:focus {
   border-color: var(--color-primary-500);
   box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+}
+
+.input-base::placeholder {
+  color: var(--color-text-subtle);
 }
 
 /* Button base */
@@ -188,7 +201,16 @@ body {
 .page-enter { opacity: 0; transform: translateY(8px); }
 .page-enter-active { opacity: 1; transform: translateY(0); transition: all 0.25s ease; }
 
-/* Admin override - full width */
+/* Admin override - full width for admin panel */
 body:has(.admin-shell) {
   max-width: 100%;
+  box-shadow: none;
+  border: none;
+}
+
+/* Landing page - full width */
+body:has(.landing-page) {
+  max-width: 100%;
+  box-shadow: none;
+  border: none;
 }
