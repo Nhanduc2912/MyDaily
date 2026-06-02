@@ -10,7 +10,7 @@ const settingsGroups = [
   {
     title: 'Tài khoản',
     items: [
-      { icon: User, label: 'Thông tin cá nhân', desc: 'Tên, ảnh đại diện, bio', to: '/profile' },
+      { icon: User, label: 'Thông tin cá nhân', desc: 'Tên, ảnh đại diện, bio', to: '/profile?edit=true' },
       { icon: Bell, label: 'Thông báo', desc: 'Quản lý cài đặt thông báo', to: '/notifications' },
       { icon: Shield, label: 'Quyền riêng tư', desc: 'Mặc định hiển thị bài đăng', action: 'privacy' },
     ],
@@ -72,7 +72,7 @@ export default function Settings() {
             <p className="text-sm font-bold text-gray-800 truncate">{profile?.display_name || profile?.username}</p>
             <p className="text-xs text-gray-400 truncate">@{profile?.username}</p>
           </div>
-          <button onClick={() => navigate('/profile')} className="text-xs text-orange-600 font-semibold tap-highlight">
+          <button onClick={() => navigate('/profile?edit=true')} className="text-xs text-orange-600 font-semibold tap-highlight">
             Chỉnh sửa
           </button>
         </motion.div>

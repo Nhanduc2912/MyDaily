@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabaseClient'
 import AppShell from '@/components/layout/AppShell'
-import { ArrowLeft, Settings, Camera, Flame, Award, Calendar, ChevronRight, Edit3, Share2 } from 'lucide-react'
+import { ArrowLeft, Settings, Camera, Flame, Award, Calendar, ChevronRight, Edit3, Share2, X, Loader2 } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 15 },
@@ -17,6 +18,7 @@ const fadeUp = {
 export default function Profile() {
   const navigate = useNavigate()
   const { username } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { profile: myProfile } = useAuthStore()
   const [profileData, setProfileData] = useState(null)
   const [badges, setBadges] = useState([])
@@ -24,6 +26,20 @@ export default function Profile() {
   const [loading, setLoading] = useState(true)
 
   const isOwnProfile = !username || username === myProfile?.username
+
+  // Edit Profile Modal state
+  const [isEditModalOpen, setIsEditModalOpen] = useState(searchParams.get('edit') === 'true')
+  const [editForm, setEditForm] = useState({
+    displayName: '',
+    username: '',
+    bio: '',
+    gender: 'prefer_not_to_say',
+    dob: '',
+    avatarUrl: '',
+  })
+  const [saving, setSaving] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const fileInputRef = useRef(null)
 
   useEffect(() => {
     loadProfile()
@@ -58,6 +74,96 @@ export default function Profile() {
       console.error(err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Initialize edit form when opening modal
+  useEffect(() => {
+    const p = profileData || myProfile
+    if (isEditModalOpen && p) {
+      setEditForm({
+        displayName: p.display_name || '',
+        username: p.username || '',
+        bio: p.bio || '',
+        gender: p.gender || 'prefer_not_to_say',
+        dob: p.date_of_birth || '',
+        avatarUrl: p.avatar_url || '',
+      })
+    }
+  }, [isEditModalOpen, profileData, myProfile])
+
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file || !myProfile?.id) return
+
+    setUploadingAvatar(true)
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${myProfile.id}/avatar_${Date.now()}.${fileExt}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { contentType: file.type, upsert: true })
+
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName)
+
+      setEditForm(prev => ({ ...prev, avatarUrl: publicUrl }))
+      toast.success('Đã tải ảnh đại diện lên!')
+    } catch (err) {
+      toast.error('Lỗi khi tải ảnh đại diện')
+      console.error(err)
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault()
+    if (!editForm.username.trim() || !editForm.displayName.trim()) {
+      toast.error('Vui lòng nhập đầy đủ Tên hiển thị và Tên người dùng')
+      return
+    }
+
+    setSaving(true)
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({
+          display_name: editForm.displayName.trim(),
+          username: editForm.username.trim().toLowerCase(),
+          bio: editForm.bio.trim(),
+          gender: editForm.gender,
+          date_of_birth: editForm.dob || null,
+          avatar_url: editForm.avatarUrl,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', myProfile.id)
+        .select()
+        .single()
+
+      if (error) {
+        if (error.code === '23505') {
+          throw new Error('Tên người dùng đã được sử dụng')
+        }
+        throw error
+      }
+
+      if (data) {
+        setProfileData(data)
+        useAuthStore.getState().setProfile(data)
+        toast.success('Cập nhật hồ sơ thành công!')
+        setIsEditModalOpen(false)
+        setSearchParams({})
+      }
+    } catch (err) {
+      toast.error(err.message || 'Lỗi khi lưu thông tin')
+      console.error(err)
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -106,7 +212,10 @@ export default function Profile() {
                 )}
               </div>
               {isOwnProfile && (
-                <button className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-white border-2 border-gray-100 flex items-center justify-center shadow-sm tap-highlight">
+                <button
+                  onClick={() => setIsEditModalOpen(true)}
+                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-white border-2 border-gray-100 flex items-center justify-center shadow-sm tap-highlight"
+                >
                   <Edit3 size={14} className="text-gray-500" />
                 </button>
               )}
@@ -218,6 +327,155 @@ export default function Profile() {
           )}
         </motion.div>
       </div>
+
+      {/* Edit Profile Modal */}
+      <AnimatePresence>
+        {isEditModalOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              onClick={() => { setIsEditModalOpen(false); setSearchParams({}); }}
+              className="fixed inset-0 bg-black z-40 max-w-[480px] mx-auto"
+            />
+            {/* Modal Body */}
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+              className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl p-5 z-50 max-w-[480px] mx-auto max-h-[90vh] overflow-y-auto shadow-2xl safe-bottom text-left"
+            >
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-base font-bold text-gray-900">Chỉnh sửa hồ sơ</h3>
+                <button
+                  onClick={() => { setIsEditModalOpen(false); setSearchParams({}); }}
+                  className="p-1 text-gray-400 hover:text-gray-600 tap-highlight"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveProfile} className="space-y-4 pb-24">
+                {/* Upload Avatar */}
+                <div className="flex flex-col items-center gap-2 mb-2">
+                  <div className="relative group">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-300 to-orange-500 flex items-center justify-center text-white font-bold text-2xl overflow-hidden shadow-md">
+                      {editForm.avatarUrl ? (
+                        <img src={editForm.avatarUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        (editForm.displayName || 'U').charAt(0).toUpperCase()
+                      )}
+                      
+                      {uploadingAvatar && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                          <Loader2 size={20} className="text-white animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-white border-2 border-gray-100 flex items-center justify-center shadow-sm tap-highlight"
+                    >
+                      <Camera size={12} className="text-gray-600" />
+                    </button>
+                  </div>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleAvatarChange}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <span className="text-[10px] text-gray-400">Chọn ảnh chân dung hoặc ảnh vẽ cá nhân</span>
+                </div>
+
+                {/* Display Name */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 mb-1 block">Tên hiển thị</label>
+                  <input
+                    type="text"
+                    value={editForm.displayName}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, displayName: e.target.value }))}
+                    placeholder="Tên hiển thị của bạn"
+                    className="input-base text-sm"
+                    maxLength={30}
+                    required
+                  />
+                </div>
+
+                {/* Username */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 mb-1 block">Tên người dùng (username)</label>
+                  <input
+                    type="text"
+                    value={editForm.username}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '') }))}
+                    placeholder="username"
+                    className="input-base text-sm"
+                    maxLength={20}
+                    required
+                  />
+                </div>
+
+                {/* Bio */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 mb-1 block">Tiểu sử (bio)</label>
+                  <textarea
+                    value={editForm.bio}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, bio: e.target.value }))}
+                    placeholder="Mô tả ngắn về bạn..."
+                    className="input-base text-sm resize-none h-18 py-2"
+                    maxLength={100}
+                  />
+                </div>
+
+                {/* Gender */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 mb-1 block">Giới tính</label>
+                  <select
+                    value={editForm.gender}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, gender: e.target.value }))}
+                    className="input-base text-sm h-[42px] py-0"
+                  >
+                    <option value="male">Nam</option>
+                    <option value="female">Nữ</option>
+                    <option value="other">Khác</option>
+                    <option value="prefer_not_to_say">Không muốn tiết lộ</option>
+                  </select>
+                </div>
+
+                {/* Date of Birth */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 mb-1 block">Ngày sinh</label>
+                  <input
+                    type="date"
+                    value={editForm.dob}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, dob: e.target.value }))}
+                    className="input-base text-sm"
+                  />
+                </div>
+
+                {/* Save button */}
+                <button
+                  type="submit"
+                  disabled={saving || uploadingAvatar}
+                  className="w-full btn btn-primary py-3 rounded-xl mt-2 text-sm font-semibold disabled:opacity-60 flex items-center justify-center gap-1.5"
+                >
+                  {saving ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    'Lưu thay đổi'
+                  )}
+                </button>
+              </form>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </AppShell>
   )
 }

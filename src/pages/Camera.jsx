@@ -148,12 +148,15 @@ export default function Camera() {
         .select('id')
         .eq('user_id', profile.id)
         .eq('page_date', pageDate)
-        .single()
+        .maybeSingle()
 
       if (!page) {
         const { data: newPage, error: pageError } = await supabase
           .from('daily_pages')
-          .insert({ user_id: profile.id, page_date: pageDate })
+          .upsert(
+            { user_id: profile.id, page_date: pageDate, is_deleted: false, deleted_at: null },
+            { onConflict: 'user_id,page_date' }
+          )
           .select('id')
           .single()
 

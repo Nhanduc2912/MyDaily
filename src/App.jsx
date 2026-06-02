@@ -50,27 +50,43 @@ function PublicRoute({ children }) {
 }
 
 export default function App() {
-  const { setUser, setLoading, fetchProfile } = useAuthStore()
+  const { setUser, setLoading, fetchProfile, createProfileFallback } = useAuthStore()
 
   useEffect(() => {
     // Init auth session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser(session.user)
-        fetchProfile(session.user.id)
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      try {
+        if (session?.user) {
+          setUser(session.user)
+          const { data: profile } = await fetchProfile(session.user.id)
+          if (!profile) {
+            await createProfileFallback(session.user)
+          }
+        }
+      } catch (err) {
+        console.error('Session init error:', err)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     })
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser(session.user)
-        fetchProfile(session.user.id)
-      } else {
-        setUser(null)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      try {
+        if (session?.user) {
+          setUser(session.user)
+          const { data: profile } = await fetchProfile(session.user.id)
+          if (!profile) {
+            await createProfileFallback(session.user)
+          }
+        } else {
+          setUser(null)
+        }
+      } catch (err) {
+        console.error('Auth state change error:', err)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     })
 
     return () => subscription.unsubscribe()

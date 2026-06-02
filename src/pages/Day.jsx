@@ -50,6 +50,7 @@ export default function Day() {
   const [newPlan, setNewPlan] = useState('')
   const [reactions, setReactions] = useState({})
   const [showReactionPicker, setShowReactionPicker] = useState(null)
+  const [selectedPost, setSelectedPost] = useState(null)
 
   useEffect(() => {
     loadData()
@@ -67,12 +68,15 @@ export default function Day() {
         .eq('user_id', profile.id)
         .eq('page_date', pageDate)
         .eq('is_deleted', false)
-        .single()
+        .maybeSingle() // Use maybeSingle to avoid 406 error on empty row
 
       if (!pageData && pageDate === getMyDailyDate()) {
         const { data: newPage } = await supabase
           .from('daily_pages')
-          .insert({ user_id: profile.id, page_date: pageDate })
+          .upsert(
+            { user_id: profile.id, page_date: pageDate, is_deleted: false, deleted_at: null },
+            { onConflict: 'user_id,page_date' }
+          )
           .select('*')
           .single()
         pageData = newPage
@@ -85,7 +89,7 @@ export default function Day() {
         // Posts with reactions
         const { data: postsData } = await supabase
           .from('posts')
-          .select('*, themes(name_vi, icon), theme_time_slots(name, emoji)')
+          .select('*, themes(name_vi, icon), theme_time_slots(name, icon)')
           .eq('page_id', pageData.id)
           .eq('is_deleted', false)
           .order('taken_at', { ascending: true })
@@ -157,10 +161,29 @@ export default function Day() {
   }
 
   const addTodo = async () => {
-    if (!newTodo.trim() || !page?.id) return
+    if (!newTodo.trim() || !profile?.id) return
+    let currentPage = page
+    if (!currentPage) {
+      const { data: newPage, error: pageError } = await supabase
+        .from('daily_pages')
+        .upsert(
+          { user_id: profile.id, page_date: pageDate, is_deleted: false, deleted_at: null },
+          { onConflict: 'user_id,page_date' }
+        )
+        .select('*')
+        .single()
+      if (pageError) {
+        toast.error('Không thể tạo trang cho ngày này')
+        console.error(pageError)
+        return
+      }
+      currentPage = newPage
+      setPage(newPage)
+    }
+
     const { data, error } = await supabase
       .from('todos')
-      .insert({ page_id: page.id, user_id: profile.id, content: newTodo.trim() })
+      .insert({ page_id: currentPage.id, user_id: profile.id, content: newTodo.trim() })
       .select()
       .single()
     if (!error && data) {
@@ -171,16 +194,69 @@ export default function Day() {
   }
 
   const addNote = async () => {
-    if (!newNote.trim() || !page?.id) return
+    if (!newNote.trim() || !profile?.id) return
+    let currentPage = page
+    if (!currentPage) {
+      const { data: newPage, error: pageError } = await supabase
+        .from('daily_pages')
+        .upsert(
+          { user_id: profile.id, page_date: pageDate, is_deleted: false, deleted_at: null },
+          { onConflict: 'user_id,page_date' }
+        )
+        .select('*')
+        .single()
+      if (pageError) {
+        toast.error('Không thể tạo trang cho ngày này')
+        console.error(pageError)
+        return
+      }
+      currentPage = newPage
+      setPage(newPage)
+    }
+
     const { data, error } = await supabase
       .from('notes')
-      .insert({ page_id: page.id, user_id: profile.id, content: newNote.trim() })
+      .insert({ page_id: currentPage.id, user_id: profile.id, content: newNote.trim() })
       .select()
       .single()
     if (!error && data) {
       setNotes(prev => [data, ...prev])
       setNewNote('')
       toast.success('Đã thêm ghi chú!')
+    }
+  }
+
+  const changePostVisibility = async (postId, visibility) => {
+    setPosts(prev => prev.map(p => p.id === postId ? { ...p, visibility } : p))
+    setSelectedPost(null)
+    toast.success('Đã cập nhật quyền riêng tư!')
+    
+    const { error } = await supabase
+      .from('posts')
+      .update({ visibility })
+      .eq('id', postId)
+      
+    if (error) {
+      toast.error('Lỗi khi cập nhật')
+      loadData()
+    }
+  }
+
+  const handleSoftDeletePost = async (postId) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa bài đăng này không?')) return
+    
+    setPosts(prev => prev.filter(p => p.id !== postId))
+    setSelectedPost(null)
+    toast.success('Đã xóa bài đăng')
+    
+    const { error } = await supabase
+      .from('posts')
+      .update({ is_deleted: true, deleted_at: new Date().toISOString(), state: 'deleted' })
+      .eq('id', postId)
+      
+    if (error) {
+      toast.error('Lỗi khi xóa bài đăng')
+      loadData()
     }
   }
 
@@ -430,9 +506,21 @@ export default function Day() {
                                       <p className="text-sm font-medium text-gray-800 mt-0.5">{post.custom_title}</p>
                                     )}
                                   </div>
-                                  <span className="text-[10px] text-gray-400">
-                                    {dayjs(post.taken_at).format('HH:mm')}
-                                  </span>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-[10px] text-gray-400">
+                                      {dayjs(post.taken_at).format('HH:mm')}
+                                    </span>
+                                    {post.user_id === profile?.id && (
+                                      <button
+                                        onClick={() => setSelectedPost(post)}
+                                        className="tap-highlight p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50"
+                                      >
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                          <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
+                                        </svg>
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
 
                                 {/* Reactions */}
@@ -738,6 +826,75 @@ export default function Day() {
           </AnimatePresence>
         )}
       </div>
+
+      {/* Bottom Sheet for Post Actions */}
+      <AnimatePresence>
+        {selectedPost && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.4 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedPost(null)}
+              className="fixed inset-0 bg-black z-40 max-w-[480px] mx-auto"
+            />
+            {/* Bottom Sheet */}
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+              className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl p-5 z-50 max-w-[480px] mx-auto shadow-2xl safe-bottom"
+            >
+              <div className="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
+              <h3 className="text-sm font-bold text-gray-800 mb-4">Tùy chọn bài viết</h3>
+              
+              <div className="space-y-4">
+                {/* Visibility options */}
+                <div>
+                  <p className="text-xs font-semibold text-gray-400 mb-2 uppercase">Quyền riêng tư</p>
+                  <div className="flex gap-2">
+                    {[
+                      { key: 'private', label: 'Chỉ mình tôi', icon: Lock },
+                      { key: 'friends', label: 'Bạn bè', icon: Users },
+                      { key: 'public', label: 'Công khai', icon: Globe },
+                    ].map(opt => {
+                      const Icon = opt.icon
+                      const active = selectedPost.visibility === opt.key
+                      return (
+                        <button
+                          key={opt.key}
+                          onClick={() => changePostVisibility(selectedPost.id, opt.key)}
+                          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold border-2 transition-colors tap-highlight ${
+                            active
+                              ? 'bg-orange-50 text-orange-600 border-orange-200'
+                              : 'bg-gray-50 text-gray-500 border-transparent hover:bg-gray-100'
+                          }`}
+                        >
+                          <Icon size={14} />
+                          {opt.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div className="h-px bg-gray-100" />
+
+                {/* Delete option */}
+                <button
+                  onClick={() => handleSoftDeletePost(selectedPost.id)}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-red-500 font-semibold text-sm transition-colors tap-highlight"
+                >
+                  <Trash2 size={18} />
+                  <span>Xóa bài viết</span>
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </AppShell>
   )
 }

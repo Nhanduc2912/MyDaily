@@ -27,6 +27,8 @@ export default function Friends() {
     if (profile?.id) {
       loadFriends()
       loadRequests()
+    } else {
+      setLoading(false)
     }
   }, [profile])
 
@@ -67,6 +69,7 @@ export default function Friends() {
       setSearchResults([])
       return
     }
+    if (!profile?.id) return
 
     const { data } = await supabase
       .from('profiles')
