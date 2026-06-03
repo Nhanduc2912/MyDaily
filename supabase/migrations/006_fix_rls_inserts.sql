@@ -4,6 +4,10 @@
 
 -- 1. DAILY PAGES policies refactoring
 DROP POLICY IF EXISTS "pages_own" ON daily_pages;
+DROP POLICY IF EXISTS "pages_own_select" ON daily_pages;
+DROP POLICY IF EXISTS "pages_own_insert" ON daily_pages;
+DROP POLICY IF EXISTS "pages_own_update" ON daily_pages;
+DROP POLICY IF EXISTS "pages_own_delete" ON daily_pages;
 
 CREATE POLICY "pages_own_select" ON daily_pages
   FOR SELECT USING (auth.uid() = user_id AND is_deleted = FALSE);
@@ -21,6 +25,10 @@ CREATE POLICY "pages_own_delete" ON daily_pages
 
 -- 2. POSTS policies refactoring
 DROP POLICY IF EXISTS "posts_own" ON posts;
+DROP POLICY IF EXISTS "posts_own_select" ON posts;
+DROP POLICY IF EXISTS "posts_own_insert" ON posts;
+DROP POLICY IF EXISTS "posts_own_update" ON posts;
+DROP POLICY IF EXISTS "posts_own_delete" ON posts;
 
 CREATE POLICY "posts_own_select" ON posts
   FOR SELECT USING (auth.uid() = user_id AND is_deleted = FALSE);
@@ -38,6 +46,10 @@ CREATE POLICY "posts_own_delete" ON posts
 
 -- 3. TODOS policies refactoring
 DROP POLICY IF EXISTS "todos_own" ON todos;
+DROP POLICY IF EXISTS "todos_own_select" ON todos;
+DROP POLICY IF EXISTS "todos_own_insert" ON todos;
+DROP POLICY IF EXISTS "todos_own_update" ON todos;
+DROP POLICY IF EXISTS "todos_own_delete" ON todos;
 
 CREATE POLICY "todos_own_select" ON todos
   FOR SELECT USING (auth.uid() = user_id AND is_deleted = FALSE);
@@ -55,6 +67,10 @@ CREATE POLICY "todos_own_delete" ON todos
 
 -- 4. NOTES policies refactoring
 DROP POLICY IF EXISTS "notes_own" ON notes;
+DROP POLICY IF EXISTS "notes_own_select" ON notes;
+DROP POLICY IF EXISTS "notes_own_insert" ON notes;
+DROP POLICY IF EXISTS "notes_own_update" ON notes;
+DROP POLICY IF EXISTS "notes_own_delete" ON notes;
 
 CREATE POLICY "notes_own_select" ON notes
   FOR SELECT USING (auth.uid() = user_id AND is_deleted = FALSE);
@@ -72,6 +88,10 @@ CREATE POLICY "notes_own_delete" ON notes
 
 -- 5. DAY PLANS policies refactoring
 DROP POLICY IF EXISTS "day_plans_own" ON day_plans;
+DROP POLICY IF EXISTS "day_plans_own_select" ON day_plans;
+DROP POLICY IF EXISTS "day_plans_own_insert" ON day_plans;
+DROP POLICY IF EXISTS "day_plans_own_update" ON day_plans;
+DROP POLICY IF EXISTS "day_plans_own_delete" ON day_plans;
 
 CREATE POLICY "day_plans_own_select" ON day_plans
   FOR SELECT USING (auth.uid() = user_id AND is_deleted = FALSE);
