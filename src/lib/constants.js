@@ -55,7 +55,7 @@ export const ROUTES = {
   HOME:        '/',
   AUTH:        '/auth',
   DASHBOARD:   '/dashboard',
-  DAY:         '/day/:date',
+  DAY:         '/day/:date/:username?',
   CAMERA:      '/camera',
   FRIENDS:     '/friends',
   PROFILE:     '/profile/:username',

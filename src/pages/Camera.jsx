@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabaseClient'
 import dayjs, { getMyDailyDate } from '@/lib/dayjs'
 import { VISIBILITY_LABELS } from '@/lib/constants'
-import { X, Camera as CamIcon, RotateCcw, Check, ChevronDown, Lock, Users, Globe, Loader2 } from 'lucide-react'
+import { X, RotateCcw, Check, Lock, Users, Globe, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export default function Camera() {
@@ -26,15 +26,17 @@ export default function Camera() {
   const [timeSlots, setTimeSlots] = useState([])
   const [selectedTheme, setSelectedTheme] = useState(null)
   const [customTitle, setCustomTitle] = useState('')
-  const [visibility, setVisibility] = useState('private')
+  const [visibility, setVisibility] = useState(localStorage.getItem('default_visibility') || 'private')
 
-  useEffect(() => {
-    startCamera()
-    loadThemes()
-    return () => stopCamera()
-  }, [facingMode])
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop())
+      streamRef.current = null
+    }
+    setCameraReady(false)
+  }, [])
 
-  const startCamera = async () => {
+  const startCamera = useCallback(async () => {
     try {
       stopCamera()
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -55,17 +57,9 @@ export default function Camera() {
       toast.error('Không thể truy cập camera. Vui lòng cấp quyền.')
       console.error(err)
     }
-  }
+  }, [facingMode, stopCamera])
 
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop())
-      streamRef.current = null
-    }
-    setCameraReady(false)
-  }
-
-  const loadThemes = async () => {
+  const loadThemes = useCallback(async () => {
     const currentHour = dayjs().hour()
     const { data: slots } = await supabase
       .from('theme_time_slots')
@@ -91,7 +85,18 @@ export default function Camera() {
         if (themeData) setThemes(themeData)
       }
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      startCamera()
+      loadThemes()
+    }, 0)
+    return () => {
+      clearTimeout(timer)
+      stopCamera()
+    }
+  }, [facingMode, startCamera, stopCamera, loadThemes])
 
   const capture = useCallback(() => {
     if (!videoRef.current || !canvasRef.current) return
@@ -112,7 +117,7 @@ export default function Camera() {
     setCapturedImage(imageData)
     setShowEditor(true)
     stopCamera()
-  }, [facingMode])
+  }, [facingMode, stopCamera])
 
   const retake = () => {
     setCapturedImage(null)

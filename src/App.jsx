@@ -53,6 +53,14 @@ export default function App() {
   const { setUser, setLoading, fetchProfile, createProfileFallback } = useAuthStore()
 
   useEffect(() => {
+    // Init theme
+    const savedTheme = localStorage.getItem('theme') || 'light'
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+
     // Init auth session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       try {

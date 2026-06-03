@@ -38,6 +38,16 @@
   --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.12);
 }
 
+html.dark {
+  --color-surface: #1e293b;
+  --color-surface-2: #0f172a;
+  --color-surface-3: #334155;
+  --color-border: #334155;
+  --color-text: #f8fafc;
+  --color-text-muted: #94a3b8;
+  --color-text-subtle: #64748b;
+}
+
 /* Base */
 *, *::before, *::after {
   box-sizing: border-box;

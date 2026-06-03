@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/store/authStore'
@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabaseClient'
 import AppShell from '@/components/layout/AppShell'
 import { ArrowLeft, Settings, Camera, Flame, Award, Calendar, ChevronRight, Edit3, Share2, X, Loader2 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import dayjs from '@/lib/dayjs'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 15 },
@@ -23,6 +24,7 @@ export default function Profile() {
   const [profileData, setProfileData] = useState(null)
   const [badges, setBadges] = useState([])
   const [stats, setStats] = useState({ posts: 0, friends: 0, activeDays: 0 })
+  const [dailyPages, setDailyPages] = useState([])
   const [loading, setLoading] = useState(true)
 
   const isOwnProfile = !username || username === myProfile?.username
@@ -41,54 +43,116 @@ export default function Profile() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const fileInputRef = useRef(null)
 
-  useEffect(() => {
-    loadProfile()
-  }, [username, myProfile])
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
+      let resolvedProfileId = null
+
       if (isOwnProfile && myProfile) {
         setProfileData(myProfile)
+        resolvedProfileId = myProfile.id
       } else if (username) {
         const { data } = await supabase
           .from('profiles')
           .select('*')
           .eq('username', username)
           .eq('is_deleted', false)
-          .single()
-        if (data) setProfileData(data)
+          .maybeSingle()
+        if (data) {
+          setProfileData(data)
+          resolvedProfileId = data.id
+        }
       }
 
-      // Load badges
-      const profileId = isOwnProfile ? myProfile?.id : profileData?.id
-      if (profileId) {
+      if (resolvedProfileId) {
+        // Load badges
         const { data: badgeData } = await supabase
           .from('user_badges')
           .select('*, badges(*)')
-          .eq('user_id', profileId)
+          .eq('user_id', resolvedProfileId)
           .order('earned_at', { ascending: false })
 
         if (badgeData) setBadges(badgeData)
+
+        // Load stats
+        const { count: postsCount } = await supabase
+          .from('posts')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', resolvedProfileId)
+          .eq('is_deleted', false)
+
+        const { count: activeDaysCount } = await supabase
+          .from('daily_pages')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', resolvedProfileId)
+          .eq('is_deleted', false)
+
+        const { count: friendsCount } = await supabase
+          .from('friendships')
+          .select('*', { count: 'exact', head: true })
+          .or(`requester_id.eq.${resolvedProfileId},addressee_id.eq.${resolvedProfileId}`)
+          .eq('state', 'accepted')
+
+        setStats({
+          posts: postsCount || 0,
+          activeDays: activeDaysCount || 0,
+          friends: friendsCount || 0,
+        })
+
+        // Check if current user is friend of resolved profile
+        let isFriend = false
+        if (!isOwnProfile && myProfile) {
+          const { data: friendship } = await supabase
+            .from('friendships')
+            .select('*')
+            .or(`and(requester_id.eq.${myProfile.id},addressee_id.eq.${resolvedProfileId}),and(requester_id.eq.${resolvedProfileId},addressee_id.eq.${myProfile.id})`)
+            .eq('state', 'accepted')
+            .maybeSingle()
+          isFriend = !!friendship
+        }
+
+        // Fetch target user's active daily pages (Day History)
+        let pagesQuery = supabase
+          .from('daily_pages')
+          .select('*')
+          .eq('user_id', resolvedProfileId)
+          .eq('is_deleted', false)
+
+        if (!isOwnProfile) {
+          pagesQuery = pagesQuery.in('visibility', isFriend ? ['public', 'friends'] : ['public'])
+        }
+
+        const { data: pagesData } = await pagesQuery.order('page_date', { ascending: false })
+        setDailyPages(pagesData || [])
       }
     } catch (err) {
       console.error(err)
     } finally {
       setLoading(false)
     }
-  }
+  }, [username, myProfile, isOwnProfile])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadProfile()
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [loadProfile])
 
   // Initialize edit form when opening modal
   useEffect(() => {
     const p = profileData || myProfile
     if (isEditModalOpen && p) {
-      setEditForm({
-        displayName: p.display_name || '',
-        username: p.username || '',
-        bio: p.bio || '',
-        gender: p.gender || 'prefer_not_to_say',
-        dob: p.date_of_birth || '',
-        avatarUrl: p.avatar_url || '',
-      })
+      const timer = setTimeout(() => {
+        setEditForm({
+          displayName: p.display_name || '',
+          username: p.username || '',
+          bio: p.bio || '',
+          gender: p.gender || 'prefer_not_to_say',
+          dob: p.date_of_birth || '',
+          avatarUrl: p.avatar_url || '',
+        })
+      }, 0)
+      return () => clearTimeout(timer)
     }
   }, [isEditModalOpen, profileData, myProfile])
 
@@ -294,9 +358,47 @@ export default function Profile() {
             )}
           </motion.div>
 
+          {/* Day History */}
+          <motion.div variants={fadeUp} custom={5} className="mt-6">
+            <h3 className="text-base font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
+              <Calendar size={18} className="text-orange-500" />
+              Lịch sử hoạt động
+            </h3>
+            {dailyPages.length === 0 ? (
+              <div className="card p-6 text-center text-gray-400 dark:text-gray-600 text-xs">
+                Chưa có ngày nhật ký nào được chia sẻ.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {dailyPages.map(page => (
+                  <button
+                    key={page.id}
+                    onClick={() => navigate(`/day/${page.page_date}${isOwnProfile ? '' : '/' + p?.username}`)}
+                    className="card w-full p-4 flex items-center justify-between hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors tap-highlight"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg">
+                        {page.mood === 'happy' ? '😄' : page.mood === 'good' ? '🙂' : page.mood === 'neutral' ? '😐' : page.mood === 'tired' ? '😴' : page.mood === 'sad' ? '😢' : '📝'}
+                      </span>
+                      <div className="text-left">
+                        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                          Ngày {dayjs(page.page_date).format('DD/MM/YYYY')}
+                        </p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">
+                          {page.visibility === 'public' ? '🌍 Công khai' : page.visibility === 'friends' ? '👥 Bạn bè' : '🔒 Riêng tư'}
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight size={16} className="text-gray-300 dark:text-gray-600" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </motion.div>
+
           {/* Quick actions */}
           {isOwnProfile && (
-            <motion.div variants={fadeUp} custom={5} className="mt-6 space-y-2">
+            <motion.div variants={fadeUp} custom={6} className="mt-6 space-y-2">
               <button
                 onClick={() => navigate('/stats')}
                 className="card w-full p-4 flex items-center gap-3 tap-highlight"

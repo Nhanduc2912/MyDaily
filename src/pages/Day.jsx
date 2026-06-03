@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/store/authStore'
@@ -32,12 +32,17 @@ const timeSlotInfo = [
 
 export default function Day() {
   const navigate = useNavigate()
-  const { date } = useParams()
+  const { date, username } = useParams()
   const [searchParams] = useSearchParams()
   const { profile } = useAuthStore()
 
+  const isOwnPage = !username || username === profile?.username
+  const [targetProfile, setTargetProfile] = useState(null)
+  const [isFriend, setIsFriend] = useState(false)
+  const [privacyError, setPrivacyError] = useState(null) // null | 'private' | 'not_friend' | 'not_found'
+
   const pageDate = date || getMyDailyDate()
-  const [tab, setTab] = useState(searchParams.get('tab') || 'timeline')
+  const [tab, setTab] = useState(isOwnPage ? (searchParams.get('tab') || 'timeline') : 'timeline')
   const [page, setPage] = useState(null)
   const [posts, setPosts] = useState([])
   const [todos, setTodos] = useState([])
@@ -52,29 +57,83 @@ export default function Day() {
   const [showReactionPicker, setShowReactionPicker] = useState(null)
   const [selectedPost, setSelectedPost] = useState(null)
 
-  useEffect(() => {
-    loadData()
-  }, [pageDate, profile])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!profile?.id) { setLoading(false); return }
     setLoading(true)
+    setPrivacyError(null)
 
     try {
-      // Load or create daily page
-      let { data: pageData } = await supabase
+      let pageOwnerId = profile.id
+      let confirmedFriend = false
+
+      if (!isOwnPage) {
+        // Fetch target user's profile
+        const { data: userProfile, error: profileErr } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('username', username)
+          .eq('is_deleted', false)
+          .maybeSingle()
+
+        if (profileErr || !userProfile) {
+          setPrivacyError('not_found')
+          setLoading(false)
+          return
+        }
+
+        pageOwnerId = userProfile.id
+        setTargetProfile(userProfile)
+
+        // Check friendship state
+        const { data: friendship } = await supabase
+          .from('friendships')
+          .select('*')
+          .or(`and(requester_id.eq.${profile.id},addressee_id.eq.${userProfile.id}),and(requester_id.eq.${userProfile.id},addressee_id.eq.${profile.id})`)
+          .eq('state', 'accepted')
+          .maybeSingle()
+
+        confirmedFriend = !!friendship
+        setIsFriend(confirmedFriend)
+      } else {
+        setTargetProfile(profile)
+      }
+
+      // Load target daily page
+      let { data: pageData, error: pageErr } = await supabase
         .from('daily_pages')
         .select('*')
-        .eq('user_id', profile.id)
+        .eq('user_id', pageOwnerId)
         .eq('page_date', pageDate)
         .eq('is_deleted', false)
-        .maybeSingle() // Use maybeSingle to avoid 406 error on empty row
+        .maybeSingle()
 
-      if (!pageData && pageDate === getMyDailyDate()) {
+      if (!isOwnPage) {
+        if (pageErr || !pageData) {
+          setPrivacyError('private')
+          setLoading(false)
+          return
+        }
+
+        // Privacy rules checks
+        const vis = pageData.visibility || 'private'
+        if (vis === 'private') {
+          setPrivacyError('private')
+          setLoading(false)
+          return
+        }
+        if (vis === 'friends' && !confirmedFriend && profile.role !== 'admin') {
+          setPrivacyError('not_friend')
+          setLoading(false)
+          return
+        }
+      }
+
+      // If own page doesn't exist yet and date is today, create it
+      if (isOwnPage && !pageData && pageDate === getMyDailyDate()) {
         const { data: newPage } = await supabase
           .from('daily_pages')
           .upsert(
-            { user_id: profile.id, page_date: pageDate, is_deleted: false, deleted_at: null },
+            { user_id: profile.id, page_date: pageDate, is_deleted: false, deleted_at: null, visibility: localStorage.getItem('default_visibility') || 'private' },
             { onConflict: 'user_id,page_date' }
           )
           .select('*')
@@ -87,12 +146,17 @@ export default function Day() {
 
       if (pageData) {
         // Posts with reactions
-        const { data: postsData } = await supabase
+        let postsQuery = supabase
           .from('posts')
           .select('*, themes(name_vi, icon), theme_time_slots(name, icon)')
           .eq('page_id', pageData.id)
           .eq('is_deleted', false)
-          .order('taken_at', { ascending: true })
+
+        if (!isOwnPage) {
+          postsQuery = postsQuery.in('visibility', isFriend ? ['public', 'friends'] : ['public'])
+        }
+
+        const { data: postsData } = await postsQuery.order('taken_at', { ascending: true })
         setPosts(postsData || [])
 
         // Load reactions for all posts
@@ -111,41 +175,50 @@ export default function Day() {
           setReactions(reactMap)
         }
 
-        // Todos
-        const { data: todosData } = await supabase
-          .from('todos')
-          .select('*')
-          .eq('page_id', pageData.id)
-          .eq('is_deleted', false)
-          .order('sort_order')
-        setTodos(todosData || [])
+        if (isOwnPage) {
+          // Todos
+          const { data: todosData } = await supabase
+            .from('todos')
+            .select('*')
+            .eq('page_id', pageData.id)
+            .eq('is_deleted', false)
+            .order('sort_order')
+          setTodos(todosData || [])
 
-        // Notes
-        const { data: notesData } = await supabase
-          .from('notes')
-          .select('*')
-          .eq('page_id', pageData.id)
-          .eq('is_deleted', false)
-          .order('created_at', { ascending: false })
-        setNotes(notesData || [])
+          // Notes
+          const { data: notesData } = await supabase
+            .from('notes')
+            .select('*')
+            .eq('page_id', pageData.id)
+            .eq('is_deleted', false)
+            .order('created_at', { ascending: false })
+          setNotes(notesData || [])
 
-        // Plans for tomorrow
-        const tomorrow = dayjs(pageDate).add(1, 'day').format('YYYY-MM-DD')
-        const { data: plansData } = await supabase
-          .from('day_plans')
-          .select('*')
-          .eq('user_id', profile.id)
-          .eq('plan_date', tomorrow)
-          .eq('is_deleted', false)
-          .order('sort_order')
-        setPlans(plansData || [])
+          // Plans for tomorrow
+          const tomorrow = dayjs(pageDate).add(1, 'day').format('YYYY-MM-DD')
+          const { data: plansData } = await supabase
+            .from('day_plans')
+            .select('*')
+            .eq('user_id', profile.id)
+            .eq('plan_date', tomorrow)
+            .eq('is_deleted', false)
+            .order('sort_order')
+          setPlans(plansData || [])
+        }
       }
     } catch (err) {
       console.error(err)
     } finally {
       setLoading(false)
     }
-  }
+  }, [pageDate, profile, username, isOwnPage, isFriend])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadData()
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [loadData])
 
   const toggleTodo = async (id, isDone) => {
     setTodos(prev => prev.map(t => t.id === id ? { ...t, is_done: !isDone, done_at: !isDone ? new Date().toISOString() : null } : t))
@@ -349,6 +422,26 @@ export default function Day() {
     }
   }
 
+  const togglePageVisibility = async () => {
+    if (!page?.id) return
+    const options = ['private', 'friends', 'public']
+    const nextIdx = (options.indexOf(page.visibility || 'private') + 1) % options.length
+    const nextVis = options[nextIdx]
+    
+    try {
+      const { error } = await supabase
+        .from('daily_pages')
+        .update({ visibility: nextVis })
+        .eq('id', page.id)
+      if (error) throw error
+      setPage(prev => ({ ...prev, visibility: nextVis }))
+      toast.success(`Đã đổi trạng thái trang sang: ${VISIBILITY_LABELS[nextVis].label}`)
+    } catch (err) {
+      console.error(err)
+      toast.error('Lỗi khi cập nhật quyền riêng tư')
+    }
+  }
+
   const prevDate = dayjs(pageDate).subtract(1, 'day').format('YYYY-MM-DD')
   const nextDate = dayjs(pageDate).add(1, 'day').format('YYYY-MM-DD')
   const isToday = pageDate === getMyDailyDate()
@@ -368,48 +461,98 @@ export default function Day() {
     return groups
   }
 
+  if (privacyError) {
+    return (
+      <AppShell>
+        <div className="px-4 pt-4 pb-4">
+          <div className="flex items-center gap-3 mb-6">
+            <button onClick={() => navigate(-1)} className="tap-highlight p-1">
+              <ArrowLeft size={22} className="text-gray-700 dark:text-gray-200" />
+            </button>
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white">Quay lại</h1>
+          </div>
+          
+          <div className="flex flex-col items-center justify-center py-20 text-center px-6">
+            <div className="w-16 h-16 rounded-full bg-red-50 dark:bg-red-950/20 flex items-center justify-center mb-4 text-3xl">
+              {privacyError === 'not_friend' ? '👥' : '🔒'}
+            </div>
+            <h2 className="text-base font-bold text-gray-800 dark:text-gray-200 mb-1">
+              {privacyError === 'private' && 'Trang nhật ký riêng tư'}
+              {privacyError === 'not_friend' && 'Trang chỉ dành cho bạn bè'}
+              {privacyError === 'not_found' && 'Không tìm thấy trang'}
+            </h2>
+            <p className="text-xs text-gray-400 dark:text-gray-500 max-w-xs leading-relaxed">
+              {privacyError === 'private' && 'Chủ sở hữu đã đặt trang này ở chế độ riêng tư.'}
+              {privacyError === 'not_friend' && `Bạn cần kết bạn với @${username} để xem nhật ký ngày này.`}
+              {privacyError === 'not_found' && 'Trang nhật ký này không tồn tại hoặc đã bị xóa.'}
+            </p>
+          </div>
+        </div>
+      </AppShell>
+    )
+  }
+
   return (
     <AppShell>
       <div className="px-4 pt-4 pb-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <button onClick={() => navigate('/dashboard')} className="tap-highlight p-1">
-            <ArrowLeft size={22} className="text-gray-700" />
+          <button onClick={() => navigate(-1)} className="tap-highlight p-1">
+            <ArrowLeft size={22} className="text-gray-700 dark:text-gray-200" />
           </button>
           <div className="flex items-center gap-2">
-            <button onClick={() => navigate(`/day/${prevDate}`)} className="tap-highlight p-1">
+            <button onClick={() => navigate(`/day/${prevDate}${!isOwnPage ? '/' + username : ''}`)} className="tap-highlight p-1">
               <ChevronLeft size={20} className="text-gray-500" />
             </button>
             <div className="text-center">
-              <p className="text-sm font-bold text-gray-800">
-                {isToday ? 'Hôm nay' : dayjs(pageDate).format('DD/MM/YYYY')}
+              <p className="text-sm font-bold text-gray-800 dark:text-gray-200">
+                {isOwnPage ? (isToday ? 'Hôm nay' : dayjs(pageDate).format('DD/MM/YYYY')) : `${targetProfile?.display_name || targetProfile?.username}`}
               </p>
-              <p className="text-[10px] text-gray-400">{formatDate(pageDate)}</p>
+              <p className="text-[10px] text-gray-400">
+                {!isOwnPage ? dayjs(pageDate).format('DD/MM/YYYY') : formatDate(pageDate)}
+              </p>
             </div>
             <button
-              onClick={() => !isToday && navigate(`/day/${nextDate}`)}
+              onClick={() => !isToday && navigate(`/day/${nextDate}${!isOwnPage ? '/' + username : ''}`)}
               className={`tap-highlight p-1 ${isToday ? 'opacity-30' : ''}`}
               disabled={isToday}
             >
               <ChevronRight size={20} className="text-gray-500" />
             </button>
           </div>
-          <button onClick={handleShare} className="tap-highlight p-1">
-            <Share2 size={20} className="text-gray-500" />
-          </button>
+          <div className="flex items-center gap-1">
+            {isOwnPage && page && (
+              <button
+                onClick={togglePageVisibility}
+                className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-850 font-semibold text-gray-600 dark:text-gray-300 tap-highlight animate-fade-in"
+                title="Thay đổi quyền riêng tư của ngày này"
+              >
+                <span>{VISIBILITY_LABELS[page.visibility || 'private']?.icon}</span>
+                <span>{VISIBILITY_LABELS[page.visibility || 'private']?.label}</span>
+              </button>
+            )}
+            {isOwnPage && (
+              <button onClick={handleShare} className="tap-highlight p-1">
+                <Share2 size={20} className="text-gray-500" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Mood Picker */}
-        <div className="flex items-center gap-2 mb-4 p-3 rounded-xl bg-gray-50">
-          <span className="text-xs font-semibold text-gray-500 mr-1">Tâm trạng:</span>
+        <div className="flex items-center gap-2 mb-4 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/40">
+          <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 mr-1">Tâm trạng:</span>
           {MOODS.map(m => (
             <button
               key={m.value}
-              onClick={() => updateMood(m.value)}
-              className={`text-xl tap-highlight transition-transform ${
-                mood === m.value ? 'scale-125' : 'opacity-40 hover:opacity-70'
+              onClick={() => isOwnPage && updateMood(m.value)}
+              className={`text-xl transition-transform ${
+                isOwnPage ? 'tap-highlight hover:opacity-70' : 'cursor-default'
+              } ${
+                mood === m.value ? 'scale-125 opacity-100' : 'opacity-20'
               }`}
               title={m.label}
+              disabled={!isOwnPage}
             >
               {m.emoji}
             </button>
@@ -417,26 +560,28 @@ export default function Day() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 p-1 bg-gray-100 rounded-xl mb-5">
-          {TABS.map(t => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-[11px] font-semibold transition-colors ${
-                tab === t.key ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500'
-              }`}
-            >
-              <t.icon size={13} />
-              {t.label}
-              {t.key === 'todo' && todos.length > 0 && (
-                <span className="text-[10px] text-orange-500">({todoPct}%)</span>
-              )}
-              {t.key === 'plan' && plans.length > 0 && (
-                <span className="text-[10px] text-blue-500">({plans.length})</span>
-              )}
-            </button>
-          ))}
-        </div>
+        {isOwnPage && (
+          <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800/60 rounded-xl mb-5">
+            {TABS.map(t => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-[11px] font-semibold transition-colors ${
+                  tab === t.key ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm' : 'text-gray-500'
+                }`}
+              >
+                <t.icon size={13} />
+                {t.label}
+                {t.key === 'todo' && todos.length > 0 && (
+                  <span className="text-[10px] text-orange-500">({todoPct}%)</span>
+                )}
+                {t.key === 'plan' && plans.length > 0 && (
+                  <span className="text-[10px] text-blue-500">({plans.length})</span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
 
         {loading ? (
           <div className="space-y-3">
@@ -585,7 +730,7 @@ export default function Day() {
                   </motion.div>
                 ))}
 
-                {isToday && (
+                {isToday && isOwnPage && (
                   <button
                     onClick={() => navigate('/camera')}
                     className="w-full btn btn-primary rounded-2xl py-3.5"
