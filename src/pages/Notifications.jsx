@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabaseClient'
 import AppShell from '@/components/layout/AppShell'
-import { ArrowLeft, Check, Bell, UserPlus, Heart, Award, Shield, MessageSquare } from 'lucide-react'
+import { ArrowLeft, Check, Bell, UserPlus, Heart, Award, Shield } from 'lucide-react'
 import { fromNow } from '@/lib/dayjs'
 
 const typeIcons = {
@@ -18,13 +18,13 @@ const typeIcons = {
 }
 
 const typeColors = {
-  reaction: 'text-pink-500 bg-pink-50',
-  friend_request: 'text-blue-500 bg-blue-50',
-  friend_accepted: 'text-green-500 bg-green-50',
-  badge_earned: 'text-amber-500 bg-amber-50',
-  post_moderated: 'text-red-500 bg-red-50',
-  system: 'text-gray-500 bg-gray-50',
-  push_reminder: 'text-orange-500 bg-orange-50',
+  reaction: { bg: 'bg-pink-50 dark:bg-pink-950/20', text: 'text-pink-500 dark:text-pink-400' },
+  friend_request: { bg: 'bg-blue-50 dark:bg-blue-950/20', text: 'text-blue-500 dark:text-blue-400' },
+  friend_accepted: { bg: 'bg-green-50 dark:bg-green-950/20', text: 'text-green-500 dark:text-green-400' },
+  badge_earned: { bg: 'bg-amber-50 dark:bg-amber-950/20', text: 'text-amber-500 dark:text-amber-400' },
+  post_moderated: { bg: 'bg-red-50 dark:bg-red-950/20', text: 'text-red-500 dark:text-red-400' },
+  system: { bg: 'bg-gray-50 dark:bg-gray-800/40', text: 'text-gray-500 dark:text-gray-400' },
+  push_reminder: { bg: 'bg-orange-50 dark:bg-orange-950/20', text: 'text-orange-500 dark:text-orange-400' },
 }
 
 export default function Notifications() {
@@ -33,11 +33,7 @@ export default function Notifications() {
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadNotifications()
-  }, [])
-
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     if (!profile?.id) {
       setLoading(false)
       return
@@ -59,7 +55,14 @@ export default function Notifications() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [profile])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadNotifications()
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [loadNotifications])
 
   const markAsRead = async (id) => {
     setNotifications(prev =>
@@ -86,17 +89,17 @@ export default function Notifications() {
 
   return (
     <AppShell>
-      <div className="px-4 pt-4 pb-4">
+      <div className="px-4 pt-4 pb-24">
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
             <button onClick={() => navigate(-1)} className="tap-highlight p-1">
-              <ArrowLeft size={22} className="text-gray-700" />
+              <ArrowLeft size={22} className="text-gray-700 dark:text-gray-200" />
             </button>
-            <h1 className="text-lg font-bold text-gray-900">
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white">
               Thông báo
               {unreadCount > 0 && (
-                <span className="ml-2 text-xs font-semibold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full">
+                <span className="ml-2 text-xs font-semibold text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-950/40 px-2 py-0.5 rounded-full">
                   {unreadCount}
                 </span>
               )}
@@ -105,7 +108,7 @@ export default function Notifications() {
           {unreadCount > 0 && (
             <button
               onClick={markAllAsRead}
-              className="text-xs text-orange-600 font-semibold flex items-center gap-1 tap-highlight"
+              className="text-xs text-orange-600 dark:text-orange-400 font-semibold flex items-center gap-1 tap-highlight"
             >
               <Check size={14} /> Đọc hết
             </button>
@@ -131,19 +134,18 @@ export default function Notifications() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center py-16"
           >
-            <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-4">
-              <Bell size={28} className="text-gray-300" />
+            <div className="w-16 h-16 rounded-2xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
+              <Bell size={28} className="text-gray-300 dark:text-gray-600" />
             </div>
-            <p className="text-sm font-semibold text-gray-500">Không có thông báo</p>
-            <p className="text-xs text-gray-400 mt-1">Khi có hoạt động mới, bạn sẽ thấy ở đây</p>
+            <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">Không có thông báo</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Khi có hoạt động mới, bạn sẽ thấy ở đây</p>
           </motion.div>
         ) : (
           <div className="space-y-2">
             <AnimatePresence>
               {notifications.map((n, i) => {
                 const Icon = typeIcons[n.type] || Bell
-                const colorClass = typeColors[n.type] || 'text-gray-500 bg-gray-50'
-                const [iconColor, iconBg] = colorClass.split(' ')
+                const colors = typeColors[n.type] || { bg: 'bg-gray-50 dark:bg-gray-800/40', text: 'text-gray-500 dark:text-gray-400' }
 
                 return (
                   <motion.div
@@ -153,16 +155,16 @@ export default function Notifications() {
                     transition={{ delay: i * 0.03 }}
                     onClick={() => !n.is_read && markAsRead(n.id)}
                     className={`card p-4 flex items-start gap-3 tap-highlight transition-colors ${
-                      !n.is_read ? 'bg-orange-50/40 border-orange-100/60' : ''
+                      !n.is_read ? 'bg-orange-50/40 dark:bg-orange-950/15 border-orange-100/60 dark:border-orange-900/45' : ''
                     }`}
                   >
-                    <div className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center flex-shrink-0`}>
-                      <Icon size={18} className={iconColor} />
+                    <div className={`w-10 h-10 rounded-xl ${colors.bg} flex items-center justify-center flex-shrink-0`}>
+                      <Icon size={18} className={colors.text} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      {n.title && <p className="text-sm font-semibold text-gray-800">{n.title}</p>}
-                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.body}</p>
-                      <p className="text-[10px] text-gray-400 mt-1">{fromNow(n.created_at)}</p>
+                      {n.title && <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{n.title}</p>}
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{n.body}</p>
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">{fromNow(n.created_at)}</p>
                     </div>
                     {!n.is_read && (
                       <div className="w-2 h-2 rounded-full bg-orange-500 flex-shrink-0 mt-2" />

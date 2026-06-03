@@ -272,10 +272,10 @@ export default function Camera() {
         <motion.div
           initial={{ y: 100 }}
           animate={{ y: 0 }}
-          className="bg-white rounded-t-3xl px-5 pt-5 pb-6 safe-bottom max-h-[55vh] overflow-y-auto"
+          className="bg-white dark:bg-gray-900 rounded-t-3xl px-5 pt-5 pb-6 safe-bottom max-h-[55vh] overflow-y-auto"
         >
           {/* Theme Picker */}
-          <h3 className="text-sm font-bold text-gray-800 mb-3">Chọn chủ đề</h3>
+          <h3 className="text-sm font-bold text-gray-800 dark:text-white mb-3">Chọn chủ đề</h3>
           <div className="flex gap-2 overflow-x-auto no-scrollbar mb-4 pb-1">
             {themes.map(theme => (
               <button
@@ -284,20 +284,20 @@ export default function Camera() {
                 className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-colors tap-highlight ${
                   selectedTheme?.id === theme.id
                     ? 'bg-orange-500 text-white'
-                    : 'bg-gray-100 text-gray-600'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
                 }`}
               >
                 {theme.icon} {theme.name_vi}
               </button>
             ))}
             {themes.length === 0 && (
-              <p className="text-xs text-gray-400">Không có chủ đề cho khung giờ này</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500">Không có chủ đề cho khung giờ này</p>
             )}
           </div>
 
           {/* Custom Title */}
           <div className="mb-4">
-            <label className="text-sm font-bold text-gray-800 mb-1.5 block">Tiêu đề</label>
+            <label className="text-sm font-bold text-gray-800 dark:text-white mb-1.5 block">Tiêu đề</label>
             <input
               type="text"
               value={customTitle}
@@ -310,7 +310,7 @@ export default function Camera() {
 
           {/* Visibility */}
           <div className="mb-5">
-            <label className="text-sm font-bold text-gray-800 mb-2 block">Ai có thể xem?</label>
+            <label className="text-sm font-bold text-gray-800 dark:text-white mb-2 block">Ai có thể xem?</label>
             <div className="flex gap-2">
               {Object.entries(VISIBILITY_LABELS).map(([key, val]) => (
                 <button
@@ -318,8 +318,8 @@ export default function Camera() {
                   onClick={() => setVisibility(key)}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold transition-colors tap-highlight ${
                     visibility === key
-                      ? 'bg-orange-50 text-orange-600 border-2 border-orange-200'
-                      : 'bg-gray-50 text-gray-500 border-2 border-transparent'
+                      ? 'bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 border-2 border-orange-205 dark:border-orange-900'
+                      : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-2 border-transparent'
                   }`}
                 >
                   {visibilityIcon[key]}

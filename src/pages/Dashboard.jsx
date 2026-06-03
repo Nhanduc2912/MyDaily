@@ -160,7 +160,7 @@ export default function Dashboard() {
 
   return (
     <AppShell>
-      <div className="px-4 pt-5 pb-4">
+      <div className="px-4 pt-5 pb-24">
         <motion.div
           initial="hidden"
           animate="visible"
@@ -169,8 +169,8 @@ export default function Dashboard() {
           {/* Header */}
           <motion.div variants={fadeUp} custom={0} className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500">{greeting} 👋</p>
-              <h1 className="text-xl font-bold text-gray-900 mt-0.5">
+              <p className="text-sm text-gray-500 dark:text-gray-400">{greeting} 👋</p>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white mt-0.5">
                 {profile?.display_name || profile?.username || 'Bạn'}
               </h1>
             </div>
@@ -235,50 +235,50 @@ export default function Dashboard() {
 
           {/* Quick Actions */}
           <motion.div variants={fadeUp} custom={3}>
-            <h2 className="text-base font-bold text-gray-800 mb-3">Hôm nay</h2>
+            <h2 className="text-base font-bold text-gray-800 dark:text-white mb-3">Hôm nay</h2>
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => navigate(`/day/${todayDate}`)}
                 className="card p-4 tap-highlight text-left"
               >
-                <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center mb-2.5">
-                  <Calendar size={18} className="text-blue-500" />
+                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/20 flex items-center justify-center mb-2.5">
+                  <Calendar size={18} className="text-blue-500 dark:text-blue-400" />
                 </div>
-                <p className="text-sm font-semibold text-gray-800">Xem ngày</p>
-                <p className="text-xs text-gray-400 mt-0.5">Timeline hôm nay</p>
+                <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Xem ngày</p>
+                <p className="text-xs text-gray-450 dark:text-gray-500 mt-0.5">Timeline hôm nay</p>
               </button>
 
               <button
                 onClick={() => navigate(`/day/${todayDate}?tab=todo`)}
                 className="card p-4 tap-highlight text-left"
               >
-                <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center mb-2.5">
-                  <CheckSquare size={18} className="text-green-500" />
+                <div className="w-9 h-9 rounded-xl bg-green-50 dark:bg-green-950/20 flex items-center justify-center mb-2.5">
+                  <CheckSquare size={18} className="text-green-500 dark:text-green-400" />
                 </div>
-                <p className="text-sm font-semibold text-gray-800">To-do</p>
-                <p className="text-xs text-gray-400 mt-0.5">Danh sách việc cần làm</p>
+                <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">To-do</p>
+                <p className="text-xs text-gray-450 dark:text-gray-500 mt-0.5">Danh sách việc cần làm</p>
               </button>
 
               <button
                 onClick={() => navigate(`/day/${todayDate}?tab=notes`)}
                 className="card p-4 tap-highlight text-left"
               >
-                <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center mb-2.5">
-                  <StickyNote size={18} className="text-amber-500" />
+                <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/20 flex items-center justify-center mb-2.5">
+                  <StickyNote size={18} className="text-amber-500 dark:text-amber-400" />
                 </div>
-                <p className="text-sm font-semibold text-gray-800">Ghi chú</p>
-                <p className="text-xs text-gray-400 mt-0.5">Ghi nhớ trong ngày</p>
+                <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Ghi chú</p>
+                <p className="text-xs text-gray-450 dark:text-gray-500 mt-0.5">Ghi nhớ trong ngày</p>
               </button>
 
               <button
                 onClick={() => navigate('/stats')}
                 className="card p-4 tap-highlight text-left"
               >
-                <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center mb-2.5">
-                  <Flame size={18} className="text-violet-500" />
+                <div className="w-9 h-9 rounded-xl bg-violet-50 dark:bg-violet-950/20 flex items-center justify-center mb-2.5">
+                  <Flame size={18} className="text-violet-500 dark:text-violet-400" />
                 </div>
-                <p className="text-sm font-semibold text-gray-800">Thống kê</p>
-                <p className="text-xs text-gray-400 mt-0.5">Hoạt động tháng này</p>
+                <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Thống kê</p>
+                <p className="text-xs text-gray-450 dark:text-gray-500 mt-0.5">Hoạt động tháng này</p>
               </button>
             </div>
           </motion.div>
@@ -286,10 +286,10 @@ export default function Dashboard() {
           {/* Timeline Preview */}
           <motion.div variants={fadeUp} custom={4}>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-bold text-gray-800">Timeline hôm nay</h2>
+              <h2 className="text-base font-bold text-gray-800 dark:text-white">Timeline hôm nay</h2>
               <button
                 onClick={() => navigate(`/day/${todayDate}`)}
-                className="text-xs text-orange-600 font-semibold flex items-center gap-0.5 tap-highlight"
+                className="text-xs text-orange-600 dark:text-orange-400 font-semibold flex items-center gap-0.5 tap-highlight"
               >
                 Xem đầy đủ <ChevronRight size={14} />
               </button>
@@ -313,29 +313,29 @@ export default function Dashboard() {
                     transition={{ delay: 0.3 + i * 0.05 }}
                     className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${
                       isCurrent
-                        ? 'bg-orange-50 border border-orange-100'
+                        ? 'bg-orange-50 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-900/65'
                         : isPast
-                          ? 'bg-gray-50/50 opacity-60'
-                          : 'bg-white border border-gray-50'
+                          ? 'bg-gray-50/50 dark:bg-gray-800/30 opacity-60'
+                          : 'bg-white dark:bg-gray-850 border border-gray-50 dark:border-gray-800'
                     }`}
                   >
                     <span className="text-lg w-7 text-center">{slot.emoji}</span>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-xs font-semibold ${isCurrent ? 'text-orange-700' : 'text-gray-600'}`}>
+                      <p className={`text-xs font-semibold ${isCurrent ? 'text-orange-700 dark:text-orange-400' : 'text-gray-600 dark:text-gray-300'}`}>
                         {slot.label}
                       </p>
-                      <p className="text-[10px] text-gray-400">
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500">
                         {slot.range[0]}:00 — {slot.range[1] === 24 ? '0' : slot.range[1]}:00
                       </p>
                     </div>
                     {isCurrent && (
-                      <span className="text-[10px] font-semibold text-orange-500 bg-orange-100 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-semibold text-orange-500 dark:text-orange-400 bg-orange-100 dark:bg-orange-950/40 px-2 py-0.5 rounded-full">
                         Hiện tại
                       </span>
                     )}
                     {!isCurrent && (
-                      <div className="w-7 h-7 rounded-lg bg-gray-50 flex items-center justify-center">
-                        <Camera size={12} className="text-gray-300" />
+                      <div className="w-7 h-7 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+                        <Camera size={12} className="text-gray-300 dark:text-gray-600" />
                       </div>
                     )}
                   </motion.div>
@@ -348,11 +348,11 @@ export default function Dashboard() {
           <motion.div variants={fadeUp} custom={5}>
             <div className="card p-4">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-bold text-gray-800">📋 Kế hoạch ngày mai</h3>
+                <h3 className="text-sm font-bold text-gray-800 dark:text-white">📋 Kế hoạch ngày mai</h3>
                 {!showAddPlan && (
                   <button
                     onClick={() => setShowAddPlan(true)}
-                    className="text-xs text-orange-600 font-semibold flex items-center gap-0.5 tap-highlight"
+                    className="text-xs text-orange-600 dark:text-orange-400 font-semibold flex items-center gap-0.5 tap-highlight"
                   >
                     <Plus size={14} /> Thêm
                   </button>
@@ -380,7 +380,7 @@ export default function Dashboard() {
                   <button
                     type="button"
                     onClick={() => { setShowAddPlan(false); setNewPlanText(''); }}
-                    className="px-3 py-1.5 border border-gray-200 rounded-xl text-xs text-gray-500 hover:bg-gray-50"
+                    className="px-3 py-1.5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-850"
                   >
                     Hủy
                   </button>
@@ -396,8 +396,8 @@ export default function Dashboard() {
                 <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                   {plans.map((plan) => (
                     <div
-                      key={plan.id}
-                      className="flex items-center gap-2.5 p-2 rounded-xl border border-gray-50 bg-gray-50/30 group"
+                       key={plan.id}
+                       className="flex items-center gap-2.5 p-2 rounded-xl border border-gray-50 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-800/30 group"
                     >
                       <button
                         type="button"
@@ -410,13 +410,13 @@ export default function Dashboard() {
                       >
                         {plan.is_done && <Check size={12} strokeWidth={3} />}
                       </button>
-                      <span className={`text-xs flex-1 truncate ${plan.is_done ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                      <span className={`text-xs flex-1 truncate ${plan.is_done ? 'line-through text-gray-400 dark:text-gray-550' : 'text-gray-700 dark:text-gray-200'}`}>
                         {plan.content}
                       </span>
                       <button
                         type="button"
                         onClick={() => handleDeletePlan(plan.id)}
-                        className="p-1 rounded-md text-gray-300 hover:text-red-500 hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity tap-highlight"
+                        className="p-1 rounded-md text-gray-300 dark:text-gray-650 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800 opacity-0 group-hover:opacity-100 transition-opacity tap-highlight"
                       >
                         <Trash2 size={12} />
                       </button>
@@ -424,7 +424,7 @@ export default function Dashboard() {
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-gray-400 text-center py-4">
+                <p className="text-xs text-gray-400 dark:text-gray-500 text-center py-4">
                   Chưa có kế hoạch nào. Nhấn "Thêm" để bắt đầu.
                 </p>
               )}

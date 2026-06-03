@@ -494,7 +494,7 @@ export default function Day() {
 
   return (
     <AppShell>
-      <div className="px-4 pt-4 pb-4">
+      <div className="px-4 pt-4 pb-24">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <button onClick={() => navigate(-1)} className="tap-highlight p-1">
@@ -567,7 +567,7 @@ export default function Day() {
                 key={t.key}
                 onClick={() => setTab(t.key)}
                 className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-[11px] font-semibold transition-colors ${
-                  tab === t.key ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm' : 'text-gray-500'
+                  tab === t.key ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'
                 }`}
               >
                 <t.icon size={13} />
@@ -613,8 +613,8 @@ export default function Day() {
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-lg">{slot.emoji}</span>
-                      <span className="text-xs font-bold text-gray-700">{slot.label}</span>
-                      <span className="text-[10px] text-gray-400">
+                      <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{slot.label}</span>
+                      <span className="text-[10px] text-gray-400 dark:text-gray-500">
                         {slot.range[0]}:00 — {slot.range[1] === 24 ? '0' : slot.range[1]}:00
                       </span>
                     </div>
@@ -628,11 +628,11 @@ export default function Day() {
                             reactionCounts[r.emoji] = (reactionCounts[r.emoji] || 0) + 1
                           })
                           const myReactions = postReactions
-                            .filter(r => r.user_id === profile.id)
-                            .map(r => r.emoji)
+                             .filter(r => r.user_id === profile.id)
+                             .map(r => r.emoji)
 
                           return (
-                            <div key={post.id} className="bg-white rounded-xl overflow-hidden shadow-sm">
+                            <div key={post.id} className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm">
                               <img
                                 src={post.image_url}
                                 alt=""
@@ -648,7 +648,7 @@ export default function Day() {
                                       </span>
                                     )}
                                     {post.custom_title && (
-                                      <p className="text-sm font-medium text-gray-800 mt-0.5">{post.custom_title}</p>
+                                      <p className="text-sm font-medium text-gray-800 dark:text-gray-100 mt-0.5">{post.custom_title}</p>
                                     )}
                                   </div>
                                   <div className="flex items-center gap-1.5">
@@ -658,7 +658,7 @@ export default function Day() {
                                     {post.user_id === profile?.id && (
                                       <button
                                         onClick={() => setSelectedPost(post)}
-                                        className="tap-highlight p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50"
+                                        className="tap-highlight p-1 rounded-lg text-gray-400 hover:text-gray-650 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                                       >
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                           <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
@@ -676,8 +676,8 @@ export default function Day() {
                                       onClick={() => toggleReaction(post.id, emoji)}
                                       className={`text-xs px-2 py-0.5 rounded-full border transition-colors tap-highlight ${
                                         myReactions.includes(emoji)
-                                          ? 'border-orange-300 bg-orange-50'
-                                          : 'border-gray-200 bg-gray-50'
+                                          ? 'border-orange-300 bg-orange-50 dark:bg-orange-950/40 dark:border-orange-800 dark:text-orange-350'
+                                          : 'border-gray-200 bg-gray-50 dark:bg-gray-800/40 dark:border-gray-700 dark:text-gray-300'
                                       }`}
                                     >
                                       {emoji} {count}
@@ -687,7 +687,7 @@ export default function Day() {
                                     onClick={() => setShowReactionPicker(
                                       showReactionPicker === post.id ? null : post.id
                                     )}
-                                    className="text-xs px-2 py-0.5 rounded-full border border-dashed border-gray-200 text-gray-400 tap-highlight hover:bg-gray-50"
+                                    className="text-xs px-2 py-0.5 rounded-full border border-dashed border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 tap-highlight hover:bg-gray-50 dark:hover:bg-gray-800"
                                   >
                                     +
                                   </button>
@@ -700,14 +700,14 @@ export default function Day() {
                                       initial={{ opacity: 0, y: -5 }}
                                       animate={{ opacity: 1, y: 0 }}
                                       exit={{ opacity: 0, y: -5 }}
-                                      className="flex gap-1 mt-2 p-2 bg-gray-50 rounded-xl"
+                                      className="flex gap-1 mt-2 p-2 bg-gray-50 dark:bg-gray-900 rounded-xl"
                                     >
                                       {REACTION_EMOJIS.map(emoji => (
                                         <button
                                           key={emoji}
                                           onClick={() => toggleReaction(post.id, emoji)}
                                           className={`text-lg p-1 rounded-lg tap-highlight transition-transform hover:scale-110 ${
-                                            myReactions.includes(emoji) ? 'bg-orange-100' : ''
+                                            myReactions.includes(emoji) ? 'bg-orange-100 dark:bg-orange-950/40' : ''
                                           }`}
                                         >
                                           {emoji}
@@ -722,9 +722,9 @@ export default function Day() {
                         })}
                       </div>
                     ) : (
-                      <div className="flex items-center justify-center py-4 bg-white/50 rounded-xl border border-dashed border-gray-200">
-                        <Camera size={14} className="text-gray-300 mr-1.5" />
-                        <span className="text-xs text-gray-400">Chưa có ảnh</span>
+                      <div className="flex items-center justify-center py-4 bg-white/50 dark:bg-gray-800/40 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
+                        <Camera size={14} className="text-gray-300 dark:text-gray-600 mr-1.5" />
+                        <span className="text-xs text-gray-400 dark:text-gray-500">Chưa có ảnh</span>
                       </div>
                     )}
                   </motion.div>
@@ -808,20 +808,20 @@ export default function Day() {
                         >
                           {todo.is_done && <Check size={14} className="text-white" />}
                         </button>
-                        <span className={`text-sm flex-1 ${todo.is_done ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                        <span className={`text-sm flex-1 ${todo.is_done ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-200'}`}>
                           {todo.content}
                         </span>
                         <button
                           onClick={() => deleteTodo(todo.id)}
                           className="tap-highlight p-1 opacity-0 group-hover:opacity-100"
                         >
-                          <Trash2 size={14} className="text-gray-300 hover:text-red-400" />
+                          <Trash2 size={14} className="text-gray-300 dark:text-gray-600 hover:text-red-400" />
                         </button>
                       </motion.div>
                     ))}
                   </AnimatePresence>
                   {todos.length === 0 && (
-                    <p className="text-center text-xs text-gray-400 py-8">
+                    <p className="text-center text-xs text-gray-400 dark:text-gray-500 py-8">
                       Chưa có việc nào. Thêm việc cần làm ở trên!
                     </p>
                   )}
@@ -870,16 +870,16 @@ export default function Day() {
                         onClick={() => deleteNote(note.id)}
                         className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 tap-highlight p-1"
                       >
-                        <Trash2 size={12} className="text-gray-300 hover:text-red-400" />
+                        <Trash2 size={12} className="text-gray-300 dark:text-gray-600 hover:text-red-400" />
                       </button>
-                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{note.content}</p>
-                      <p className="text-[10px] text-gray-400 mt-2">
+                      <p className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap">{note.content}</p>
+                      <p className="text-[10px] text-gray-400 dark:text-gray-550 mt-2">
                         {dayjs(note.created_at).format('HH:mm')}
                       </p>
                     </motion.div>
                   ))}
                   {notes.length === 0 && (
-                    <p className="text-center text-xs text-gray-400 py-8">
+                    <p className="text-center text-xs text-gray-400 dark:text-gray-500 py-8">
                       Chưa có ghi chú nào.
                     </p>
                   )}
@@ -895,14 +895,14 @@ export default function Day() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                <div className="card p-4 mb-4 bg-gradient-to-r from-blue-50 to-indigo-50">
+                <div className="card p-4 mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40">
                   <div className="flex items-center gap-2 mb-1">
-                    <CalendarPlus size={16} className="text-blue-600" />
-                    <h3 className="text-sm font-bold text-blue-800">
+                    <CalendarPlus size={16} className="text-blue-600 dark:text-blue-400" />
+                    <h3 className="text-sm font-bold text-blue-800 dark:text-blue-200">
                       Kế hoạch cho ngày {dayjs(pageDate).add(1, 'day').format('DD/MM')}
                     </h3>
                   </div>
-                  <p className="text-[11px] text-blue-500">
+                  <p className="text-[11px] text-blue-500 dark:text-blue-300">
                     Lên kế hoạch trước để bắt đầu ngày mới hiệu quả hơn!
                   </p>
                 </div>
@@ -948,20 +948,20 @@ export default function Day() {
                         >
                           {plan.is_done && <Check size={14} className="text-white" />}
                         </button>
-                        <span className={`text-sm flex-1 ${plan.is_done ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                        <span className={`text-sm flex-1 ${plan.is_done ? 'line-through text-gray-400 dark:text-gray-550' : 'text-gray-700 dark:text-gray-200'}`}>
                           {plan.content}
                         </span>
                         <button
                           onClick={() => deletePlan(plan.id)}
                           className="tap-highlight p-1"
                         >
-                          <Trash2 size={14} className="text-gray-300 hover:text-red-400" />
+                          <Trash2 size={14} className="text-gray-300 dark:text-gray-600 hover:text-red-400" />
                         </button>
                       </motion.div>
                     ))}
                   </AnimatePresence>
                   {plans.length === 0 && (
-                    <p className="text-center text-xs text-gray-400 py-8">
+                    <p className="text-center text-xs text-gray-400 dark:text-gray-500 py-8">
                       Chưa có kế hoạch nào cho ngày mai. Hãy lên plan ngay!
                     </p>
                   )}
@@ -982,7 +982,7 @@ export default function Day() {
               animate={{ opacity: 0.4 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedPost(null)}
-              className="fixed inset-0 bg-black z-40 max-w-[480px] mx-auto"
+              className="fixed inset-0 bg-black z-[60] max-w-[480px] mx-auto"
             />
             {/* Bottom Sheet */}
             <motion.div
@@ -990,15 +990,15 @@ export default function Day() {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 250 }}
-              className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl p-5 z-50 max-w-[480px] mx-auto shadow-2xl safe-bottom"
+              className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-3xl p-5 z-[65] max-w-[480px] mx-auto shadow-2xl safe-bottom"
             >
-              <div className="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
-              <h3 className="text-sm font-bold text-gray-800 mb-4">Tùy chọn bài viết</h3>
+              <div className="w-12 h-1 bg-gray-200 dark:bg-gray-750 rounded-full mx-auto mb-4" />
+              <h3 className="text-sm font-bold text-gray-800 dark:text-white mb-4">Tùy chọn bài viết</h3>
               
               <div className="space-y-4">
                 {/* Visibility options */}
                 <div>
-                  <p className="text-xs font-semibold text-gray-400 mb-2 uppercase">Quyền riêng tư</p>
+                  <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 mb-2 uppercase">Quyền riêng tư</p>
                   <div className="flex gap-2">
                     {[
                       { key: 'private', label: 'Chỉ mình tôi', icon: Lock },
@@ -1013,8 +1013,8 @@ export default function Day() {
                           onClick={() => changePostVisibility(selectedPost.id, opt.key)}
                           className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold border-2 transition-colors tap-highlight ${
                             active
-                              ? 'bg-orange-50 text-orange-600 border-orange-200'
-                              : 'bg-gray-50 text-gray-500 border-transparent hover:bg-gray-100'
+                              ? 'bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-900'
+                              : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-455 border-transparent hover:bg-gray-100 dark:hover:bg-gray-700'
                           }`}
                         >
                           <Icon size={14} />
@@ -1025,12 +1025,12 @@ export default function Day() {
                   </div>
                 </div>
 
-                <div className="h-px bg-gray-100" />
+                <div className="h-px bg-gray-100 dark:bg-gray-800" />
 
                 {/* Delete option */}
                 <button
                   onClick={() => handleSoftDeletePost(selectedPost.id)}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-red-500 font-semibold text-sm transition-colors tap-highlight"
+                  className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/20 text-red-500 dark:text-red-400 font-semibold text-sm transition-colors tap-highlight"
                 >
                   <Trash2 size={18} />
                   <span>Xóa bài viết</span>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '@/store/authStore'
@@ -23,16 +23,8 @@ export default function Friends() {
   const [searchResults, setSearchResults] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (profile?.id) {
-      loadFriends()
-      loadRequests()
-    } else {
-      setLoading(false)
-    }
-  }, [profile])
-
-  const loadFriends = async () => {
+  const loadFriends = useCallback(async () => {
+    if (!profile?.id) return
     try {
       const { data } = await supabase
         .from('friendships')
@@ -51,9 +43,10 @@ export default function Friends() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [profile])
 
-  const loadRequests = async () => {
+  const loadRequests = useCallback(async () => {
+    if (!profile?.id) return
     const { data } = await supabase
       .from('friendships')
       .select('*, requester:profiles!requester_id(*)')
@@ -61,7 +54,19 @@ export default function Friends() {
       .eq('state', 'pending')
 
     if (data) setRequests(data)
-  }
+  }, [profile])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (profile?.id) {
+        loadFriends()
+        loadRequests()
+      } else {
+        setLoading(false)
+      }
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [profile, loadFriends, loadRequests])
 
   const handleSearch = async (query) => {
     setSearchQuery(query)
@@ -127,8 +132,8 @@ export default function Friends() {
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-800 truncate">{user?.display_name || user?.username}</p>
-        <p className="text-xs text-gray-400 truncate">@{user?.username}</p>
+        <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{user?.display_name || user?.username}</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 truncate">@{user?.username}</p>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
         {actions}
@@ -138,25 +143,25 @@ export default function Friends() {
 
   return (
     <AppShell>
-      <div className="px-4 pt-4 pb-4">
+      <div className="px-4 pt-4 pb-24">
         {/* Header */}
         <div className="flex items-center gap-3 mb-5">
           <button onClick={() => navigate(-1)} className="tap-highlight p-1">
-            <ArrowLeft size={22} className="text-gray-700" />
+            <ArrowLeft size={22} className="text-gray-700 dark:text-gray-200" />
           </button>
-          <h1 className="text-lg font-bold text-gray-900">Bạn bè</h1>
+          <h1 className="text-lg font-bold text-gray-900 dark:text-white">Bạn bè</h1>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 p-1 bg-gray-100 rounded-xl mb-5">
+        <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-850 rounded-xl mb-5">
           {TABS.map(t => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
               className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold transition-colors ${
                 tab === t.key
-                  ? 'bg-white text-gray-800 shadow-sm'
-                  : 'text-gray-500'
+                  ? 'bg-white dark:bg-gray-700 text-gray-800 dark:text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400'
               }`}
             >
               {t.label}
@@ -185,8 +190,8 @@ export default function Friends() {
             ) : friends.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-4xl mb-3">👥</div>
-                <p className="text-sm font-semibold text-gray-500">Chưa có bạn bè</p>
-                <p className="text-xs text-gray-400 mt-1">Tìm kiếm và kết bạn ngay!</p>
+                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">Chưa có bạn bè</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Tìm kiếm và kết bạn ngay!</p>
                 <button
                   onClick={() => setTab('search')}
                   className="btn btn-primary mt-4 text-sm px-5 py-2.5 rounded-xl"
@@ -203,9 +208,9 @@ export default function Friends() {
                     actions={
                       <button
                         onClick={() => navigate(`/profile/${f.friend?.username}`)}
-                        className="tap-highlight p-1.5 rounded-lg bg-gray-50"
+                        className="tap-highlight p-1.5 rounded-lg bg-gray-50 dark:bg-gray-800"
                       >
-                        <ChevronRight size={16} className="text-gray-400" />
+                        <ChevronRight size={16} className="text-gray-400 dark:text-gray-650" />
                       </button>
                     }
                   />
@@ -233,13 +238,13 @@ export default function Friends() {
                       <>
                         <button
                           onClick={() => respondRequest(r.id, true)}
-                          className="tap-highlight p-2 rounded-xl bg-green-50 text-green-600"
+                          className="tap-highlight p-2 rounded-xl bg-green-50 dark:bg-green-950/40 text-green-600 dark:text-green-400"
                         >
                           <UserCheck size={16} />
                         </button>
                         <button
                           onClick={() => respondRequest(r.id, false)}
-                          className="tap-highlight p-2 rounded-xl bg-red-50 text-red-500"
+                          className="tap-highlight p-2 rounded-xl bg-red-50 dark:bg-red-950/20 text-red-500 dark:text-red-400"
                         >
                           <UserX size={16} />
                         </button>
@@ -281,7 +286,7 @@ export default function Friends() {
                       actions={
                         <button
                           onClick={() => sendRequest(u.id)}
-                          className="tap-highlight px-3 py-1.5 rounded-lg bg-orange-50 text-orange-600 text-xs font-semibold flex items-center gap-1"
+                          className="tap-highlight px-3 py-1.5 rounded-lg bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 text-xs font-semibold flex items-center gap-1"
                         >
                           <UserPlus size={14} /> Kết bạn
                         </button>

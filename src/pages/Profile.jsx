@@ -248,17 +248,17 @@ export default function Profile() {
 
   return (
     <AppShell>
-      <div className="px-4 pt-4 pb-4">
+      <div className="px-4 pt-4 pb-24">
         <motion.div initial="hidden" animate="visible">
           {/* Header */}
           <motion.div variants={fadeUp} custom={0} className="flex items-center justify-between mb-6">
             <button onClick={() => navigate(-1)} className="tap-highlight p-1">
-              <ArrowLeft size={22} className="text-gray-700" />
+              <ArrowLeft size={22} className="text-gray-700 dark:text-gray-200" />
             </button>
-            <h1 className="text-lg font-bold text-gray-900">Hồ sơ</h1>
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white">Hồ sơ</h1>
             {isOwnProfile ? (
               <button onClick={() => navigate('/settings')} className="tap-highlight p-1">
-                <Settings size={20} className="text-gray-500" />
+                <Settings size={20} className="text-gray-500 dark:text-gray-400" />
               </button>
             ) : (
               <div className="w-8" />
@@ -278,33 +278,33 @@ export default function Profile() {
               {isOwnProfile && (
                 <button
                   onClick={() => setIsEditModalOpen(true)}
-                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-white border-2 border-gray-100 flex items-center justify-center shadow-sm tap-highlight"
+                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-750 flex items-center justify-center shadow-sm tap-highlight"
                 >
-                  <Edit3 size={14} className="text-gray-500" />
+                  <Edit3 size={14} className="text-gray-500 dark:text-gray-400" />
                 </button>
               )}
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mt-3">{p?.display_name || p?.username}</h2>
-            <p className="text-sm text-gray-400">@{p?.username}</p>
-            {p?.bio && <p className="text-sm text-gray-600 mt-2 max-w-[260px] mx-auto">{p.bio}</p>}
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mt-3">{p?.display_name || p?.username}</h2>
+            <p className="text-sm text-gray-400 dark:text-gray-550">@{p?.username}</p>
+            {p?.bio && <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 max-w-[260px] mx-auto">{p.bio}</p>}
           </motion.div>
 
           {/* Stats */}
           <motion.div variants={fadeUp} custom={2} className="grid grid-cols-3 gap-3 mb-6">
             <div className="card p-3 text-center">
               <Camera size={18} className="text-orange-500 mx-auto mb-1" />
-              <p className="text-lg font-bold text-gray-800">{stats.posts}</p>
-              <p className="text-[10px] text-gray-400">Bài đăng</p>
+              <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{stats.posts}</p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500">Bài đăng</p>
             </div>
             <div className="card p-3 text-center">
               <Flame size={18} className="text-red-500 mx-auto mb-1" />
-              <p className="text-lg font-bold text-gray-800">{p?.streak_count || 0}</p>
-              <p className="text-[10px] text-gray-400">Streak</p>
+              <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{p?.streak_count || 0}</p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500">Streak</p>
             </div>
             <div className="card p-3 text-center">
               <Calendar size={18} className="text-blue-500 mx-auto mb-1" />
-              <p className="text-lg font-bold text-gray-800">{stats.activeDays}</p>
-              <p className="text-[10px] text-gray-400">Ngày</p>
+              <p className="text-lg font-bold text-gray-800 dark:text-gray-100">{stats.activeDays}</p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500">Ngày</p>
             </div>
           </motion.div>
 
@@ -329,7 +329,7 @@ export default function Profile() {
           {/* Badges */}
           <motion.div variants={fadeUp} custom={4}>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-bold text-gray-800 flex items-center gap-2">
+              <h3 className="text-base font-bold text-gray-800 dark:text-white flex items-center gap-2">
                 <Award size={18} className="text-amber-500" />
                 Huy hiệu
               </h3>
@@ -342,16 +342,16 @@ export default function Profile() {
 
             {badges.length === 0 ? (
               <div className="card p-6 text-center">
-                <Award size={32} className="text-gray-200 mx-auto mb-2" />
-                <p className="text-sm text-gray-400">Chưa có huy hiệu nào</p>
-                <p className="text-xs text-gray-300 mt-1">Tiếp tục sử dụng để nhận huy hiệu!</p>
+                <Award size={32} className="text-gray-200 dark:text-gray-700 mx-auto mb-2" />
+                <p className="text-sm text-gray-450 dark:text-gray-500">Chưa có huy hiệu nào</p>
+                <p className="text-xs text-gray-300 dark:text-gray-600 mt-1">Tiếp tục sử dụng để nhận huy hiệu!</p>
               </div>
             ) : (
               <div className="grid grid-cols-4 gap-2">
                 {badges.slice(0, 8).map((ub) => (
                   <div key={ub.id} className="card p-3 text-center tap-highlight">
                     <span className="text-2xl">{ub.badges?.icon || '🏅'}</span>
-                    <p className="text-[10px] font-semibold text-gray-600 mt-1 truncate">{ub.badges?.name_vi}</p>
+                    <p className="text-[10px] font-semibold text-gray-600 dark:text-gray-300 mt-1 truncate">{ub.badges?.name_vi}</p>
                   </div>
                 ))}
               </div>
@@ -403,27 +403,27 @@ export default function Profile() {
                 onClick={() => navigate('/stats')}
                 className="card w-full p-4 flex items-center gap-3 tap-highlight"
               >
-                <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
-                  <Calendar size={18} className="text-violet-500" />
+                <div className="w-9 h-9 rounded-xl bg-violet-50 dark:bg-violet-950/20 flex items-center justify-center">
+                  <Calendar size={18} className="text-violet-500 dark:text-violet-400" />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="text-sm font-semibold text-gray-800">Thống kê hoạt động</p>
-                  <p className="text-xs text-gray-400">Xem biểu đồ tháng của bạn</p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Thống kê hoạt động</p>
+                  <p className="text-xs text-gray-450 dark:text-gray-500">Xem biểu đồ tháng của bạn</p>
                 </div>
-                <ChevronRight size={16} className="text-gray-300" />
+                <ChevronRight size={16} className="text-gray-300 dark:text-gray-600" />
               </button>
 
               <button
                 className="card w-full p-4 flex items-center gap-3 tap-highlight"
               >
-                <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
-                  <Share2 size={18} className="text-blue-500" />
+                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/20 flex items-center justify-center">
+                  <Share2 size={18} className="text-blue-500 dark:text-blue-400" />
                 </div>
                 <div className="flex-1 text-left">
-                  <p className="text-sm font-semibold text-gray-800">Chia sẻ hồ sơ</p>
-                  <p className="text-xs text-gray-400">Tạo link chia sẻ hồ sơ</p>
+                  <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Chia sẻ hồ sơ</p>
+                  <p className="text-xs text-gray-450 dark:text-gray-500">Tạo link chia sẻ hồ sơ</p>
                 </div>
-                <ChevronRight size={16} className="text-gray-300" />
+                <ChevronRight size={16} className="text-gray-300 dark:text-gray-600" />
               </button>
             </motion.div>
           )}
@@ -440,7 +440,7 @@ export default function Profile() {
               animate={{ opacity: 0.5 }}
               exit={{ opacity: 0 }}
               onClick={() => { setIsEditModalOpen(false); setSearchParams({}); }}
-              className="fixed inset-0 bg-black z-40 max-w-[480px] mx-auto"
+              className="fixed inset-0 bg-black z-[60] max-w-[480px] mx-auto"
             />
             {/* Modal Body */}
             <motion.div
@@ -448,13 +448,13 @@ export default function Profile() {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 250 }}
-              className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl p-5 z-50 max-w-[480px] mx-auto max-h-[90vh] overflow-y-auto shadow-2xl safe-bottom text-left"
+              className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-3xl p-5 z-[65] max-w-[480px] mx-auto max-h-[90vh] overflow-y-auto shadow-2xl safe-bottom text-left"
             >
               <div className="flex items-center justify-between mb-5">
-                <h3 className="text-base font-bold text-gray-900">Chỉnh sửa hồ sơ</h3>
+                <h3 className="text-base font-bold text-gray-900 dark:text-white">Chỉnh sửa hồ sơ</h3>
                 <button
                   onClick={() => { setIsEditModalOpen(false); setSearchParams({}); }}
-                  className="p-1 text-gray-400 hover:text-gray-600 tap-highlight"
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 tap-highlight"
                 >
                   <X size={20} />
                 </button>
@@ -492,12 +492,12 @@ export default function Profile() {
                     accept="image/*"
                     className="hidden"
                   />
-                  <span className="text-[10px] text-gray-400">Chọn ảnh chân dung hoặc ảnh vẽ cá nhân</span>
+                  <span className="text-[10px] text-gray-400 dark:text-gray-500">Chọn ảnh chân dung hoặc ảnh vẽ cá nhân</span>
                 </div>
 
                 {/* Display Name */}
                 <div>
-                  <label className="text-xs font-semibold text-gray-700 mb-1 block">Tên hiển thị</label>
+                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1 block">Tên hiển thị</label>
                   <input
                     type="text"
                     value={editForm.displayName}
@@ -511,7 +511,7 @@ export default function Profile() {
 
                 {/* Username */}
                 <div>
-                  <label className="text-xs font-semibold text-gray-700 mb-1 block">Tên người dùng (username)</label>
+                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1 block">Tên người dùng (username)</label>
                   <input
                     type="text"
                     value={editForm.username}
@@ -525,7 +525,7 @@ export default function Profile() {
 
                 {/* Bio */}
                 <div>
-                  <label className="text-xs font-semibold text-gray-700 mb-1 block">Tiểu sử (bio)</label>
+                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1 block">Tiểu sử (bio)</label>
                   <textarea
                     value={editForm.bio}
                     onChange={(e) => setEditForm(prev => ({ ...prev, bio: e.target.value }))}
@@ -537,7 +537,7 @@ export default function Profile() {
 
                 {/* Gender */}
                 <div>
-                  <label className="text-xs font-semibold text-gray-700 mb-1 block">Giới tính</label>
+                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1 block">Giới tính</label>
                   <select
                     value={editForm.gender}
                     onChange={(e) => setEditForm(prev => ({ ...prev, gender: e.target.value }))}
@@ -552,7 +552,7 @@ export default function Profile() {
 
                 {/* Date of Birth */}
                 <div>
-                  <label className="text-xs font-semibold text-gray-700 mb-1 block">Ngày sinh</label>
+                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1 block">Ngày sinh</label>
                   <input
                     type="date"
                     value={editForm.dob}

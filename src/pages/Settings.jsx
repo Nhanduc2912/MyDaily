@@ -104,7 +104,8 @@ export default function Settings() {
 
   return (
     <AppShell>
-      <div className="px-4 pt-4 pb-4">
+      {/* pb-24 adds enough bottom spacing so the content is never covered by bottom nav */}
+      <div className="px-4 pt-4 pb-24">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <button onClick={() => navigate(-1)} className="tap-highlight p-1">
@@ -119,7 +120,7 @@ export default function Settings() {
           animate={{ opacity: 1, y: 0 }}
           className="card p-4 mb-6 flex items-center gap-3"
         >
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-300 to-orange-500 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-300 to-orange-500 flex items-center justify-center text-white font-bold text-lg overflow-hidden flex-shrink-0">
             {profile?.avatar_url ? (
               <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
             ) : (
@@ -127,8 +128,8 @@ export default function Settings() {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-gray-800 dark:text-gray-100 truncate">{profile?.display_name || profile?.username}</p>
-            <p className="text-xs text-gray-400 truncate">@{profile?.username}</p>
+            <p className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">{profile?.display_name || profile?.username}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">@{profile?.username}</p>
           </div>
           <button onClick={() => navigate('/profile?edit=true')} className="text-xs text-orange-600 font-semibold tap-highlight">
             Chỉnh sửa
@@ -144,8 +145,8 @@ export default function Settings() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: gi * 0.1 }}
             >
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">{group.title}</p>
-              <div className="card overflow-hidden divide-y divide-gray-50 dark:divide-gray-800">
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 px-1">{group.title}</p>
+              <div className="card overflow-hidden divide-y divide-gray-100 dark:divide-gray-800">
                 {group.items.map((item) => (
                   <button
                     key={item.label}
@@ -156,11 +157,11 @@ export default function Settings() {
                     className="w-full flex items-center gap-3 p-4 hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors tap-highlight text-left"
                   >
                     <div className="w-9 h-9 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
-                      <item.icon size={18} className="text-gray-500 dark:text-gray-400" />
+                      <item.icon size={18} className="text-gray-600 dark:text-gray-300" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{item.label}</p>
-                      {item.desc && <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{item.desc}</p>}
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{item.label}</p>
+                      {item.desc && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{item.desc}</p>}
                     </div>
                     <ChevronRight size={16} className="text-gray-300 dark:text-gray-600" />
                   </button>
@@ -180,7 +181,7 @@ export default function Settings() {
           <button
             onClick={handleSignOut}
             disabled={loggingOut}
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-red-100 dark:border-red-950 text-red-500 font-semibold text-sm hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors tap-highlight"
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-red-100 dark:border-red-950/40 text-red-650 dark:text-red-400 font-semibold text-sm hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors tap-highlight"
           >
             <LogOut size={18} />
             {loggingOut ? 'Đang đăng xuất...' : 'Đăng xuất'}
@@ -188,10 +189,10 @@ export default function Settings() {
         </motion.div>
 
         {/* App version */}
-        <p className="text-center text-[11px] text-gray-300 dark:text-gray-700 mt-6">MyDaily v1.0.0</p>
+        <p className="text-center text-[11px] text-gray-500 dark:text-gray-500 mt-6">MyDaily v1.0.0</p>
       </div>
 
-      {/* Settings Modal */}
+      {/* Settings Modal - Increased z-indices to float above nav footer */}
       <AnimatePresence>
         {activeModal && (
           <>
@@ -201,7 +202,7 @@ export default function Settings() {
               animate={{ opacity: 0.5 }}
               exit={{ opacity: 0 }}
               onClick={() => setActiveModal(null)}
-              className="fixed inset-0 bg-black z-40 max-w-[480px] mx-auto"
+              className="fixed inset-0 bg-black z-[60] max-w-[480px] mx-auto"
             />
             {/* Modal Body */}
             <motion.div
@@ -209,7 +210,7 @@ export default function Settings() {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 250 }}
-              className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-3xl p-5 z-50 max-w-[480px] mx-auto max-h-[80vh] overflow-y-auto shadow-2xl safe-bottom text-left"
+              className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-3xl p-5 z-[65] max-w-[480px] mx-auto max-h-[80vh] overflow-y-auto shadow-2xl safe-bottom text-left"
             >
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-base font-bold text-gray-900 dark:text-white">
@@ -220,7 +221,7 @@ export default function Settings() {
                 </h3>
                 <button
                   onClick={() => setActiveModal(null)}
-                  className="p-1 text-gray-400 hover:text-gray-600 tap-highlight"
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:text-gray-500 tap-highlight"
                 >
                   <X size={20} />
                 </button>
@@ -238,12 +239,12 @@ export default function Settings() {
                       onClick={() => handleSavePrivacy(opt.key)}
                       className={`w-full p-3.5 rounded-xl border text-left transition-colors tap-highlight ${
                         defaultVisibility === opt.key
-                          ? 'border-orange-500 bg-orange-50/50 dark:bg-orange-950/20'
-                          : 'border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                          ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/40 text-orange-950 dark:text-orange-100'
+                          : 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/40 hover:bg-gray-100/50 dark:hover:bg-gray-800/80 text-gray-900 dark:text-gray-200'
                       }`}
                     >
-                      <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{opt.label}</p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{opt.desc}</p>
+                      <p className="text-sm font-bold">{opt.label}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{opt.desc}</p>
                     </button>
                   ))}
                 </div>
@@ -260,11 +261,11 @@ export default function Settings() {
                       onClick={() => handleSaveLang(opt.key)}
                       className={`w-full p-3.5 rounded-xl border text-left transition-colors tap-highlight ${
                         lang === opt.key
-                          ? 'border-orange-500 bg-orange-50/50 dark:bg-orange-950/20'
-                          : 'border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                          ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/40 text-orange-950 dark:text-orange-100'
+                          : 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/40 hover:bg-gray-100/50 dark:hover:bg-gray-800/80 text-gray-900 dark:text-gray-200'
                       }`}
                     >
-                      <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{opt.label}</p>
+                      <p className="text-sm font-bold">{opt.label}</p>
                     </button>
                   ))}
                 </div>
@@ -281,24 +282,24 @@ export default function Settings() {
                       onClick={() => handleSaveTheme(opt.key)}
                       className={`w-full p-3.5 rounded-xl border text-left transition-colors tap-highlight ${
                         theme === opt.key
-                          ? 'border-orange-500 bg-orange-50/50 dark:bg-orange-950/20'
-                          : 'border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                          ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/40 text-orange-950 dark:text-orange-100'
+                          : 'border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/40 hover:bg-gray-100/50 dark:hover:bg-gray-800/80 text-gray-900 dark:text-gray-200'
                       }`}
                     >
-                      <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">{opt.label}</p>
+                      <p className="text-sm font-bold">{opt.label}</p>
                     </button>
                   ))}
                 </div>
               )}
 
               {activeModal === 'help' && (
-                <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+                <div className="space-y-3 text-sm text-gray-650 dark:text-gray-300">
                   <p>Cảm ơn bạn đã sử dụng <strong>MyDaily</strong>! Hệ thống hỗ trợ ghi lại khoảnh khắc trong ngày và chia sẻ cùng bạn bè.</p>
                   <p>Nếu bạn gặp sự cố hoặc muốn đóng góp ý kiến, vui lòng gửi phản hồi qua email:</p>
-                  <a href="mailto:support@mydaily.com" className="text-orange-500 font-medium block hover:underline">
+                  <a href="mailto:support@mydaily.com" className="text-orange-500 font-semibold block hover:underline">
                     support@mydaily.com
                   </a>
-                  <p className="text-xs text-gray-400 dark:text-gray-500">Phiên bản ứng dụng: 1.0.0 (Build 20260603)</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Phiên bản ứng dụng: 1.0.0 (Build 20260603)</p>
                 </div>
               )}
             </motion.div>
