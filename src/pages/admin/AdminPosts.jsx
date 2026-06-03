@@ -7,6 +7,7 @@ import {
 import AdminShell from '@/components/layout/AdminShell'
 import { supabase } from '@/lib/supabaseClient'
 import { useAuthStore } from '@/store/authStore'
+import toast from 'react-hot-toast'
 
 const moderationLabels = {
   approved: { text: 'Đã duyệt', color: '#10b981', bg: '#ecfdf5' },
@@ -173,7 +174,7 @@ export default function AdminPosts() {
       loadData()
     } catch (err) {
       console.error('Moderation error:', err)
-      alert('Lỗi: ' + err.message)
+      toast.error('Lỗi: ' + err.message)
     } finally {
       setActionLoading(false)
     }

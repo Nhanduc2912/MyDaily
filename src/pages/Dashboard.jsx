@@ -79,13 +79,17 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (profile?.id) {
+      if (profile.role === 'admin' || profile.role === 'moderator') {
+        navigate('/admin', { replace: true })
+        return
+      }
       fetchProfile(profile.id)
       const timer = setTimeout(() => {
         fetchPlans()
       }, 0)
       return () => clearTimeout(timer)
     }
-  }, [profile?.id, fetchProfile, fetchPlans])
+  }, [profile?.id, profile?.role, fetchProfile, fetchPlans, navigate])
 
   useEffect(() => {
     const timer = setInterval(() => {

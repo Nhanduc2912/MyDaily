@@ -5,6 +5,7 @@ import {
 import AdminShell from '@/components/layout/AdminShell'
 import { supabase } from '@/lib/supabaseClient'
 import { useAuthStore } from '@/store/authStore'
+import toast from 'react-hot-toast'
 
 const notifTypes = [
   { value: 'system', label: 'Hệ thống', icon: '🔔' },
@@ -76,11 +77,11 @@ export default function AdminNotifications() {
 
   async function handleSend() {
     if (!form.title.trim() || !form.body.trim()) {
-      alert('Vui lòng nhập tiêu đề và nội dung')
+      toast.error('Vui lòng nhập tiêu đề và nội dung')
       return
     }
     if (target !== 'all' && (target === 'select' || !target)) {
-      alert('Vui lòng chọn người nhận thông báo')
+      toast.error('Vui lòng chọn người nhận thông báo')
       return
     }
     setSending(true)
@@ -146,7 +147,7 @@ export default function AdminNotifications() {
       setTimeout(() => setSent(false), 3000)
     } catch (err) {
       console.error('Send error:', err)
-      alert('Lỗi: ' + err.message)
+      toast.error('Lỗi: ' + err.message)
     } finally {
       setSending(false)
     }

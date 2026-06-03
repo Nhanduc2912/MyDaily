@@ -91,9 +91,13 @@ export default function Auth() {
         })
         if (error) throw error
         setUser(data.user)
-        await fetchProfile(data.user.id)
+        const { data: profile } = await fetchProfile(data.user.id)
         toast.success('Đăng nhập thành công!')
-        navigate('/dashboard')
+        if (profile?.role === 'admin' || profile?.role === 'moderator') {
+          navigate('/admin')
+        } else {
+          navigate('/dashboard')
+        }
       }
 
       if (mode === 'register') {
@@ -118,9 +122,13 @@ export default function Auth() {
         if (data.session) {
           // Auto-confirmed (email confirmation disabled in Supabase)
           setUser(data.user)
-          await fetchProfile(data.user.id)
+          const { data: profile } = await fetchProfile(data.user.id)
           toast.success('Tạo tài khoản thành công!')
-          navigate('/dashboard')
+          if (profile?.role === 'admin' || profile?.role === 'moderator') {
+            navigate('/admin')
+          } else {
+            navigate('/dashboard')
+          }
         } else {
           setVerifyEmail(form.email)
           setMode('verify')

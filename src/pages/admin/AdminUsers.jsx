@@ -7,6 +7,7 @@ import {
 import AdminShell from '@/components/layout/AdminShell'
 import { supabase } from '@/lib/supabaseClient'
 import { useAuthStore } from '@/store/authStore'
+import toast from 'react-hot-toast'
 
 const stateLabels = {
   active: { text: 'Hoạt động', color: '#10b981', bg: '#ecfdf5' },
@@ -66,7 +67,7 @@ export default function AdminUsers() {
 
   async function handleStateChange(userId, newState) {
     if (!actionReason.trim() && newState !== 'active') {
-      alert('Vui lòng nhập lý do')
+      toast.error('Vui lòng nhập lý do')
       return
     }
     setActionLoading(true)
@@ -114,7 +115,7 @@ export default function AdminUsers() {
       loadUsers()
     } catch (err) {
       console.error('State change error:', err)
-      alert('Có lỗi xảy ra: ' + err.message)
+      toast.error('Có lỗi xảy ra: ' + err.message)
     } finally {
       setActionLoading(false)
     }

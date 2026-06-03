@@ -44,8 +44,13 @@ function AdminRoute({ children }) {
 }
 
 function PublicRoute({ children }) {
-  const { isAuthenticated } = useAuthStore()
-  if (isAuthenticated) return <Navigate to={ROUTES.DASHBOARD} replace />
+  const { isAuthenticated, profile } = useAuthStore()
+  if (isAuthenticated) {
+    if (profile?.role === ROLES.ADMIN || profile?.role === ROLES.MODERATOR) {
+      return <Navigate to={ROUTES.ADMIN} replace />
+    }
+    return <Navigate to={ROUTES.DASHBOARD} replace />
+  }
   return children
 }
 

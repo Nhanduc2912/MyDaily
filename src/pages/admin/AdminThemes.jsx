@@ -6,6 +6,7 @@ import {
 import AdminShell from '@/components/layout/AdminShell'
 import { supabase } from '@/lib/supabaseClient'
 import { useAuthStore } from '@/store/authStore'
+import toast from 'react-hot-toast'
 
 const stateLabels = {
   active: { text: 'Hoạt động', color: '#10b981', bg: '#ecfdf5' },
@@ -119,7 +120,7 @@ export default function AdminThemes() {
 
   async function handleSave() {
     if (!form.name_vi.trim()) {
-      alert('Vui lòng nhập tên chủ đề')
+      toast.error('Vui lòng nhập tên chủ đề')
       return
     }
     setSaving(true)
@@ -171,7 +172,7 @@ export default function AdminThemes() {
       loadData()
     } catch (err) {
       console.error('Save error:', err)
-      alert('Lỗi: ' + err.message)
+      toast.error('Lỗi: ' + err.message)
     } finally {
       setSaving(false)
     }

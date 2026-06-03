@@ -6,6 +6,7 @@ import {
 import AdminShell from '@/components/layout/AdminShell'
 import { supabase } from '@/lib/supabaseClient'
 import { useAuthStore } from '@/store/authStore'
+import toast from 'react-hot-toast'
 
 const settingGroups = [
   {
@@ -168,7 +169,7 @@ export default function AdminSettings() {
       setTimeout(() => setSaved(false), 3000)
     } catch (err) {
       console.error('Save error:', err)
-      alert('Lỗi: ' + err.message)
+      toast.error('Lỗi: ' + err.message)
     } finally {
       setSaving(false)
     }

@@ -4,6 +4,7 @@ import { Plus, Edit3, Save, Award, Star } from 'lucide-react'
 import AdminShell from '@/components/layout/AdminShell'
 import { supabase } from '@/lib/supabaseClient'
 import { useAuthStore } from '@/store/authStore'
+import toast from 'react-hot-toast'
 
 const rarityLabels = {
   common: { text: 'Phổ thông', color: '#64748b', bg: '#f1f5f9' },
@@ -105,7 +106,7 @@ export default function AdminBadges() {
 
   async function handleSave() {
     if (!form.code.trim() || !form.name_vi.trim()) {
-      alert('Vui lòng nhập mã và tên huy hiệu')
+      toast.error('Vui lòng nhập mã và tên huy hiệu')
       return
     }
 
@@ -113,7 +114,7 @@ export default function AdminBadges() {
     try {
       conditionValue = JSON.parse(form.condition_value)
     } catch {
-      alert('Điều kiện JSON không hợp lệ')
+      toast.error('Điều kiện JSON không hợp lệ')
       return
     }
 
@@ -163,7 +164,7 @@ export default function AdminBadges() {
       loadBadges()
     } catch (err) {
       console.error('Save error:', err)
-      alert('Lỗi: ' + err.message)
+      toast.error('Lỗi: ' + err.message)
     } finally {
       setSaving(false)
     }

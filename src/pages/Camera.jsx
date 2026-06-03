@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/authStore'
 import { supabase } from '@/lib/supabaseClient'
 import dayjs, { getMyDailyDate } from '@/lib/dayjs'
 import { VISIBILITY_LABELS } from '@/lib/constants'
-import { X, RotateCcw, Check, Lock, Users, Globe, Loader2 } from 'lucide-react'
+import { X, RotateCcw, Check, Lock, Users, Globe, Loader2, CameraOff } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export default function Camera() {
@@ -20,6 +20,7 @@ export default function Camera() {
   const [facingMode, setFacingMode] = useState('environment')
   const [showEditor, setShowEditor] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [cameraError, setCameraError] = useState(false)
 
   // Editor state
   const [themes, setThemes] = useState([])
@@ -38,6 +39,7 @@ export default function Camera() {
 
   const startCamera = useCallback(async () => {
     try {
+      setCameraError(false)
       stopCamera()
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
@@ -54,6 +56,7 @@ export default function Camera() {
         setCameraReady(true)
       }
     } catch (err) {
+      setCameraError(true)
       toast.error('Không thể truy cập camera. Vui lòng cấp quyền.')
       console.error(err)
     }
@@ -225,8 +228,21 @@ export default function Camera() {
               className={`w-full h-full object-cover ${facingMode === 'user' ? 'scale-x-[-1]' : ''}`}
             />
             {!cameraReady && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black">
-                <Loader2 size={32} className="text-white animate-spin" />
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black px-6 text-center">
+                {cameraError ? (
+                  <>
+                    <CameraOff className="text-gray-500 mb-4" size={48} />
+                    <p className="text-white text-sm mb-6">Không thể truy cập camera. Vui lòng cấp quyền.</p>
+                    <button
+                      onClick={() => { stopCamera(); navigate(-1) }}
+                      className="px-6 py-2.5 rounded-full bg-white text-black font-semibold text-sm tap-highlight hover:bg-gray-200 transition-colors"
+                    >
+                      Quay lại
+                    </button>
+                  </>
+                ) : (
+                  <Loader2 size={32} className="text-white animate-spin" />
+                )}
               </div>
             )}
           </>
