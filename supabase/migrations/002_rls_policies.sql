@@ -185,10 +185,12 @@ CREATE POLICY "user_badges_friends_read" ON user_badges
 CREATE POLICY "monthly_stats_own" ON monthly_stats
   FOR ALL USING (auth.uid() = user_id);
 -- =============================================
--- NOTIFICATIONS — own only
+-- NOTIFICATIONS — own only, admin write/read all
 -- =============================================
 CREATE POLICY "notifications_own" ON notifications
   FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "notifications_admin" ON notifications
+  FOR ALL USING (is_admin_or_moderator());
 -- =============================================
 -- APP SETTINGS — admin only write, all read
 -- =============================================

@@ -79,6 +79,10 @@ export default function AdminNotifications() {
       alert('Vui lòng nhập tiêu đề và nội dung')
       return
     }
+    if (target !== 'all' && (target === 'select' || !target)) {
+      alert('Vui lòng chọn người nhận thông báo')
+      return
+    }
     setSending(true)
     try {
       if (target === 'all') {
