@@ -13,7 +13,7 @@ CREATE POLICY "pages_own_insert" ON daily_pages
 
 CREATE POLICY "pages_own_update" ON daily_pages
   FOR UPDATE USING (auth.uid() = user_id) 
-  WITH CHECK (auth.uid() = user_id AND is_deleted = FALSE);
+  WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "pages_own_delete" ON daily_pages
   FOR DELETE USING (auth.uid() = user_id);
@@ -30,7 +30,7 @@ CREATE POLICY "posts_own_insert" ON posts
 
 CREATE POLICY "posts_own_update" ON posts
   FOR UPDATE USING (auth.uid() = user_id) 
-  WITH CHECK (auth.uid() = user_id AND is_deleted = FALSE);
+  WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "posts_own_delete" ON posts
   FOR DELETE USING (auth.uid() = user_id);
@@ -47,7 +47,7 @@ CREATE POLICY "todos_own_insert" ON todos
 
 CREATE POLICY "todos_own_update" ON todos
   FOR UPDATE USING (auth.uid() = user_id) 
-  WITH CHECK (auth.uid() = user_id AND is_deleted = FALSE);
+  WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "todos_own_delete" ON todos
   FOR DELETE USING (auth.uid() = user_id);
@@ -64,7 +64,7 @@ CREATE POLICY "notes_own_insert" ON notes
 
 CREATE POLICY "notes_own_update" ON notes
   FOR UPDATE USING (auth.uid() = user_id) 
-  WITH CHECK (auth.uid() = user_id AND is_deleted = FALSE);
+  WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "notes_own_delete" ON notes
   FOR DELETE USING (auth.uid() = user_id);
@@ -81,7 +81,7 @@ CREATE POLICY "day_plans_own_insert" ON day_plans
 
 CREATE POLICY "day_plans_own_update" ON day_plans
   FOR UPDATE USING (auth.uid() = user_id) 
-  WITH CHECK (auth.uid() = user_id AND is_deleted = FALSE);
+  WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "day_plans_own_delete" ON day_plans
   FOR DELETE USING (auth.uid() = user_id);
