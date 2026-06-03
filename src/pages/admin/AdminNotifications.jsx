@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Send, Bell, Users, User, Megaphone, X, CheckCircle
+  Send, Bell, Users, User, Megaphone, CheckCircle
 } from 'lucide-react'
 import AdminShell from '@/components/layout/AdminShell'
 import { supabase } from '@/lib/supabaseClient'
@@ -14,7 +13,6 @@ const notifTypes = [
 
 export default function AdminNotifications() {
   const [recentNotifs, setRecentNotifs] = useState([])
-  const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)

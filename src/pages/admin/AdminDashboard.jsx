@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import {
-  Users, Image, AlertTriangle, CheckCircle, TrendingUp,
+  Users, Image, AlertTriangle, CheckCircle,
   Activity, Eye, Clock, ArrowUpRight
 } from 'lucide-react'
 import AdminShell from '@/components/layout/AdminShell'
@@ -24,11 +24,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
-  useEffect(() => {
-    loadDashboard()
-  }, [])
-
-  async function loadDashboard() {
+  const loadDashboard = useCallback(async () => {
     try {
       const [
         { count: totalUsers },
@@ -71,7 +67,14 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadDashboard()
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [loadDashboard])
 
   const statCards = stats ? [
     {

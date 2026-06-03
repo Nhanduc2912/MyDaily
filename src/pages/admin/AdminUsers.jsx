@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Search, Filter, MoreVertical, UserCheck, UserX, Ban,
-  ChevronDown, X, Eye, Mail, Calendar, Shield, ShieldOff
+  Search, MoreVertical, UserCheck, UserX, Ban,
+  X, Eye, Shield, ShieldOff
 } from 'lucide-react'
 import AdminShell from '@/components/layout/AdminShell'
 import { supabase } from '@/lib/supabaseClient'

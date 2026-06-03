@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Search, Filter, Eye, Trash2, CheckCircle, XCircle,
-  AlertTriangle, Flag, X, RotateCcw, Image as ImageIcon
+  Search, Trash2, CheckCircle, XCircle,
+  X, Image as ImageIcon
 } from 'lucide-react'
 import AdminShell from '@/components/layout/AdminShell'
 import { supabase } from '@/lib/supabaseClient'

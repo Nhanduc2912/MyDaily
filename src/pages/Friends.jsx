@@ -153,7 +153,7 @@ export default function Friends() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-850 rounded-xl mb-5">
+        <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl mb-5">
           {TABS.map(t => (
             <button
               key={t.key}
@@ -210,7 +210,7 @@ export default function Friends() {
                         onClick={() => navigate(`/profile/${f.friend?.username}`)}
                         className="tap-highlight p-1.5 rounded-lg bg-gray-50 dark:bg-gray-800"
                       >
-                        <ChevronRight size={16} className="text-gray-400 dark:text-gray-650" />
+                        <ChevronRight size={16} className="text-gray-400 dark:text-gray-500" />
                       </button>
                     }
                   />

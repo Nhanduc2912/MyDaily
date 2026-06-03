@@ -56,6 +56,12 @@ html.dark {
 html {
   scroll-behavior: smooth;
   -webkit-tap-highlight-color: transparent;
+  background-color: #f1f5f9;
+  transition: background-color 0.2s ease;
+}
+
+html.dark {
+  background-color: #0f172a;
 }
 
 body {
@@ -104,6 +110,11 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+html.dark .glass {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* Tap effect for mobile */

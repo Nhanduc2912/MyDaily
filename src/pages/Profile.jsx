@@ -101,13 +101,15 @@ export default function Profile() {
         // Check if current user is friend of resolved profile
         let isFriend = false
         if (!isOwnProfile && myProfile) {
-          const { data: friendship } = await supabase
+          const { data: friendships } = await supabase
             .from('friendships')
             .select('*')
-            .or(`and(requester_id.eq.${myProfile.id},addressee_id.eq.${resolvedProfileId}),and(requester_id.eq.${resolvedProfileId},addressee_id.eq.${myProfile.id})`)
             .eq('state', 'accepted')
-            .maybeSingle()
-          isFriend = !!friendship
+            .or(`requester_id.eq.${myProfile.id},addressee_id.eq.${myProfile.id}`)
+          
+          isFriend = (friendships || []).some(
+            f => f.requester_id === resolvedProfileId || f.addressee_id === resolvedProfileId
+          )
         }
 
         // Fetch target user's active daily pages (Day History)
@@ -278,14 +280,14 @@ export default function Profile() {
               {isOwnProfile && (
                 <button
                   onClick={() => setIsEditModalOpen(true)}
-                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-750 flex items-center justify-center shadow-sm tap-highlight"
+                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 flex items-center justify-center shadow-sm tap-highlight"
                 >
                   <Edit3 size={14} className="text-gray-500 dark:text-gray-400" />
                 </button>
               )}
             </div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mt-3">{p?.display_name || p?.username}</h2>
-            <p className="text-sm text-gray-400 dark:text-gray-550">@{p?.username}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">@{p?.username}</p>
             {p?.bio && <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 max-w-[260px] mx-auto">{p.bio}</p>}
           </motion.div>
 
@@ -343,7 +345,7 @@ export default function Profile() {
             {badges.length === 0 ? (
               <div className="card p-6 text-center">
                 <Award size={32} className="text-gray-200 dark:text-gray-700 mx-auto mb-2" />
-                <p className="text-sm text-gray-450 dark:text-gray-500">Chưa có huy hiệu nào</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Chưa có huy hiệu nào</p>
                 <p className="text-xs text-gray-300 dark:text-gray-600 mt-1">Tiếp tục sử dụng để nhận huy hiệu!</p>
               </div>
             ) : (
@@ -408,7 +410,7 @@ export default function Profile() {
                 </div>
                 <div className="flex-1 text-left">
                   <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Thống kê hoạt động</p>
-                  <p className="text-xs text-gray-450 dark:text-gray-500">Xem biểu đồ tháng của bạn</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Xem biểu đồ tháng của bạn</p>
                 </div>
                 <ChevronRight size={16} className="text-gray-300 dark:text-gray-600" />
               </button>
@@ -421,7 +423,7 @@ export default function Profile() {
                 </div>
                 <div className="flex-1 text-left">
                   <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Chia sẻ hồ sơ</p>
-                  <p className="text-xs text-gray-450 dark:text-gray-500">Tạo link chia sẻ hồ sơ</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Tạo link chia sẻ hồ sơ</p>
                 </div>
                 <ChevronRight size={16} className="text-gray-300 dark:text-gray-600" />
               </button>

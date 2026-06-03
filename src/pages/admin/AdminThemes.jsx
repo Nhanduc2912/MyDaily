@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Plus, Edit3, Trash2, X, Save, Clock, Eye, EyeOff, Archive
+  Plus, Edit3, Trash2, Save
 } from 'lucide-react'
 import AdminShell from '@/components/layout/AdminShell'
 import { supabase } from '@/lib/supabaseClient'
@@ -41,11 +41,7 @@ export default function AdminThemes() {
     tags: '',
   })
 
-  useEffect(() => {
-    loadData()
-  }, [filterSlot, filterState])
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     setLoading(true)
     try {
       // Load time slots
@@ -77,7 +73,14 @@ export default function AdminThemes() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filterSlot, filterState])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadData()
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [loadData])
 
   function openForm(theme = null) {
     if (theme) {

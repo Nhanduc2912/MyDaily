@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { supabase } from '@/lib/supabaseClient'
@@ -24,11 +24,7 @@ export default function Share() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
-    loadSharedPage()
-  }, [token])
-
-  const loadSharedPage = async () => {
+  const loadSharedPage = useCallback(async () => {
     try {
       const { data: pageData, error: pageErr } = await supabase
         .from('daily_pages')
@@ -56,11 +52,19 @@ export default function Share() {
 
       setPosts(postsData || [])
     } catch (err) {
+      console.error(err)
       setError('Lỗi tải dữ liệu')
     } finally {
       setLoading(false)
     }
-  }
+  }, [token])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadSharedPage()
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [loadSharedPage])
 
   const groupPosts = () => {
     const groups = []

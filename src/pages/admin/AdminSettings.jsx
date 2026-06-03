@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
   Save, RotateCcw, Settings, Database, Shield, Bell, Image as ImageIcon
@@ -85,11 +85,7 @@ export default function AdminSettings() {
   const [saved, setSaved] = useState(false)
   const { profile: adminProfile } = useAuthStore()
 
-  useEffect(() => {
-    loadSettings()
-  }, [])
-
-  async function loadSettings() {
+  const loadSettings = useCallback(async () => {
     setLoading(true)
     try {
       const { data, error } = await supabase
@@ -114,7 +110,14 @@ export default function AdminSettings() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadSettings()
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [loadSettings])
 
   function updateSetting(key, newValue) {
     setSettings(prev => ({

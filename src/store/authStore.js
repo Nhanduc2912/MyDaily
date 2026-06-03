@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabaseClient'
 
 export const useAuthStore = create(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
       profile: null,
       isLoading: true,

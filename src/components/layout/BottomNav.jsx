@@ -16,7 +16,7 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-50 safe-bottom">
-      <div className="glass border-t border-gray-100/80 px-2 pb-1 pt-1.5">
+      <div className="glass border-t border-gray-100/80 dark:border-gray-800/60 px-2 pb-1 pt-1.5">
         <div className="flex items-center justify-around">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path ||
@@ -50,7 +50,7 @@ export default function BottomNav() {
                 <div className="relative">
                   <Icon
                     size={22}
-                    className={isActive ? 'text-orange-500' : 'text-gray-400'}
+                    className={isActive ? 'text-orange-500' : 'text-gray-500 dark:text-gray-400'}
                     strokeWidth={isActive ? 2.5 : 1.8}
                   />
                   {isActive && (
@@ -61,7 +61,7 @@ export default function BottomNav() {
                     />
                   )}
                 </div>
-                <span className={`text-[10px] mt-1 font-medium ${isActive ? 'text-orange-500' : 'text-gray-400'}`}>
+                <span className={`text-[10px] mt-1 font-medium ${isActive ? 'text-orange-500' : 'text-gray-500 dark:text-gray-400'}`}>
                   {item.label}
                 </span>
               </button>

@@ -20,14 +20,14 @@ const TABS = [
 ]
 
 const timeSlotInfo = [
-  { range: [5, 7],   label: 'Sáng sớm',  emoji: '🌅', bg: 'bg-orange-50' },
-  { range: [7, 11],  label: 'Buổi sáng',  emoji: '☀️', bg: 'bg-yellow-50' },
-  { range: [11, 13], label: 'Buổi trưa',  emoji: '🌤️', bg: 'bg-blue-50' },
-  { range: [13, 17], label: 'Buổi chiều', emoji: '🌇', bg: 'bg-amber-50' },
-  { range: [17, 19], label: 'Chiều tối',  emoji: '🌆', bg: 'bg-orange-50' },
-  { range: [19, 22], label: 'Buổi tối',   emoji: '🌙', bg: 'bg-indigo-50' },
-  { range: [22, 24], label: 'Đêm khuya',  emoji: '🦉', bg: 'bg-slate-50' },
-  { range: [0, 5],   label: 'Nửa đêm',   emoji: '⭐', bg: 'bg-gray-100' },
+  { range: [5, 7],   label: 'Sáng sớm',  emoji: '🌅', bg: 'bg-orange-50 dark:bg-orange-950/20' },
+  { range: [7, 11],  label: 'Buổi sáng',  emoji: '☀️', bg: 'bg-yellow-50 dark:bg-yellow-950/20' },
+  { range: [11, 13], label: 'Buổi trưa',  emoji: '🌤️', bg: 'bg-blue-50 dark:bg-blue-950/20' },
+  { range: [13, 17], label: 'Buổi chiều', emoji: '🌇', bg: 'bg-amber-50 dark:bg-amber-950/20' },
+  { range: [17, 19], label: 'Chiều tối',  emoji: '🌆', bg: 'bg-orange-50 dark:bg-orange-950/20' },
+  { range: [19, 22], label: 'Buổi tối',   emoji: '🌙', bg: 'bg-indigo-50 dark:bg-indigo-950/20' },
+  { range: [22, 24], label: 'Đêm khuya',  emoji: '🦉', bg: 'bg-slate-50 dark:bg-slate-900/30' },
+  { range: [0, 5],   label: 'Nửa đêm',   emoji: '⭐', bg: 'bg-gray-100 dark:bg-gray-900/50' },
 ]
 
 export default function Day() {
@@ -85,14 +85,15 @@ export default function Day() {
         setTargetProfile(userProfile)
 
         // Check friendship state
-        const { data: friendship } = await supabase
+        const { data: friendships } = await supabase
           .from('friendships')
           .select('*')
-          .or(`and(requester_id.eq.${profile.id},addressee_id.eq.${userProfile.id}),and(requester_id.eq.${userProfile.id},addressee_id.eq.${profile.id})`)
           .eq('state', 'accepted')
-          .maybeSingle()
+          .or(`requester_id.eq.${profile.id},addressee_id.eq.${profile.id}`)
 
-        confirmedFriend = !!friendship
+        confirmedFriend = (friendships || []).some(
+          f => f.requester_id === userProfile.id || f.addressee_id === userProfile.id
+        )
         setIsFriend(confirmedFriend)
       } else {
         setTargetProfile(profile)
@@ -524,7 +525,7 @@ export default function Day() {
             {isOwnPage && page && (
               <button
                 onClick={togglePageVisibility}
-                className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-850 font-semibold text-gray-600 dark:text-gray-300 tap-highlight animate-fade-in"
+                className="flex items-center gap-1 text-[11px] px-2.5 py-1.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 font-semibold text-gray-600 dark:text-gray-300 tap-highlight animate-fade-in"
                 title="Thay đổi quyền riêng tư của ngày này"
               >
                 <span>{VISIBILITY_LABELS[page.visibility || 'private']?.icon}</span>
@@ -658,7 +659,7 @@ export default function Day() {
                                     {post.user_id === profile?.id && (
                                       <button
                                         onClick={() => setSelectedPost(post)}
-                                        className="tap-highlight p-1 rounded-lg text-gray-400 hover:text-gray-650 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                        className="tap-highlight p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                                       >
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                           <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
@@ -821,7 +822,7 @@ export default function Day() {
                     ))}
                   </AnimatePresence>
                   {todos.length === 0 && (
-                    <p className="text-center text-xs text-gray-400 dark:text-gray-500 py-8">
+                    <p className="text-center text-xs text-gray-500 dark:text-gray-400 py-8">
                       Chưa có việc nào. Thêm việc cần làm ở trên!
                     </p>
                   )}
@@ -873,7 +874,7 @@ export default function Day() {
                         <Trash2 size={12} className="text-gray-300 dark:text-gray-600 hover:text-red-400" />
                       </button>
                       <p className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap">{note.content}</p>
-                      <p className="text-[10px] text-gray-400 dark:text-gray-550 mt-2">
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-2">
                         {dayjs(note.created_at).format('HH:mm')}
                       </p>
                     </motion.div>
@@ -961,7 +962,7 @@ export default function Day() {
                     ))}
                   </AnimatePresence>
                   {plans.length === 0 && (
-                    <p className="text-center text-xs text-gray-400 dark:text-gray-500 py-8">
+                    <p className="text-center text-xs text-gray-500 dark:text-gray-400 py-8">
                       Chưa có kế hoạch nào cho ngày mai. Hãy lên plan ngay!
                     </p>
                   )}
@@ -992,13 +993,13 @@ export default function Day() {
               transition={{ type: 'spring', damping: 25, stiffness: 250 }}
               className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-3xl p-5 z-[65] max-w-[480px] mx-auto shadow-2xl safe-bottom"
             >
-              <div className="w-12 h-1 bg-gray-200 dark:bg-gray-750 rounded-full mx-auto mb-4" />
+              <div className="w-12 h-1 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mb-4" />
               <h3 className="text-sm font-bold text-gray-800 dark:text-white mb-4">Tùy chọn bài viết</h3>
               
               <div className="space-y-4">
                 {/* Visibility options */}
                 <div>
-                  <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 mb-2 uppercase">Quyền riêng tư</p>
+                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase">Quyền riêng tư</p>
                   <div className="flex gap-2">
                     {[
                       { key: 'private', label: 'Chỉ mình tôi', icon: Lock },
@@ -1014,7 +1015,7 @@ export default function Day() {
                           className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-semibold border-2 transition-colors tap-highlight ${
                             active
                               ? 'bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-900'
-                              : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-455 border-transparent hover:bg-gray-100 dark:hover:bg-gray-700'
+                              : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-transparent hover:bg-gray-100 dark:hover:bg-gray-700'
                           }`}
                         >
                           <Icon size={14} />

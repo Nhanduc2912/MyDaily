@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Edit3, Trash2, Save, Award, Star } from 'lucide-react'
+import { Plus, Edit3, Save, Award, Star } from 'lucide-react'
 import AdminShell from '@/components/layout/AdminShell'
 import { supabase } from '@/lib/supabaseClient'
 import { useAuthStore } from '@/store/authStore'
@@ -45,11 +45,7 @@ export default function AdminBadges() {
     state: 'active',
   })
 
-  useEffect(() => {
-    loadBadges()
-  }, [filterRarity])
-
-  async function loadBadges() {
+  const loadBadges = useCallback(async () => {
     setLoading(true)
     try {
       let query = supabase
@@ -67,7 +63,14 @@ export default function AdminBadges() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filterRarity])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadBadges()
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [loadBadges])
 
   function openForm(badge = null) {
     if (badge) {

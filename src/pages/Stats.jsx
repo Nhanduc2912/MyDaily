@@ -76,7 +76,7 @@ export default function Stats() {
     return 0
   }
 
-  const activityColors = ['bg-gray-100 dark:bg-gray-800/60', 'bg-green-200 dark:bg-green-900/50', 'bg-green-400 dark:bg-green-650', 'bg-green-600 dark:bg-green-500']
+  const activityColors = ['bg-gray-100 dark:bg-gray-800/60', 'bg-green-200 dark:bg-green-900/50', 'bg-green-400 dark:bg-green-600', 'bg-green-600 dark:bg-green-500']
 
   return (
     <AppShell>
@@ -124,26 +124,26 @@ export default function Stats() {
               <div className="card p-4 text-center">
                 <Camera size={20} className="text-orange-500 mx-auto mb-2" />
                 <p className="text-2xl font-extrabold text-gray-800 dark:text-gray-100">{stats?.total_posts || 0}</p>
-                <p className="text-xs text-gray-450 dark:text-gray-500">Bài đăng</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Bài đăng</p>
               </div>
               <div className="card p-4 text-center">
                 <Calendar size={20} className="text-blue-500 mx-auto mb-2" />
                 <p className="text-2xl font-extrabold text-gray-800 dark:text-gray-100">{stats?.active_days || 0}</p>
-                <p className="text-xs text-gray-450 dark:text-gray-500">Ngày hoạt động</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Ngày hoạt động</p>
               </div>
               <div className="card p-4 text-center">
                 <CheckSquare size={20} className="text-green-500 mx-auto mb-2" />
                 <p className="text-2xl font-extrabold text-gray-800 dark:text-gray-100">
                   {stats?.total_todos ? Math.round((stats.completed_todos / stats.total_todos) * 100) : 0}%
                 </p>
-                <p className="text-xs text-gray-450 dark:text-gray-500">To-do hoàn thành</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">To-do hoàn thành</p>
               </div>
               <div className="card p-4 text-center">
                 <TrendingUp size={20} className="text-violet-500 mx-auto mb-2" />
                 <p className="text-2xl font-extrabold text-gray-800 dark:text-gray-100">
                   {stats?.avg_post_hour ? `${Math.floor(stats.avg_post_hour)}h` : '--'}
                 </p>
-                <p className="text-xs text-gray-455 dark:text-gray-500">Giờ TB chụp</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Giờ TB chụp</p>
               </div>
             </div>
 

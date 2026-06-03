@@ -17,14 +17,14 @@ const fadeUp = {
 }
 
 const timeSlotInfo = [
-  { range: [5, 7],   label: 'Sáng sớm',  emoji: '🌅', bg: 'from-orange-50 to-amber-50',    icon: Sun },
-  { range: [7, 11],  label: 'Buổi sáng',  emoji: '☀️', bg: 'from-yellow-50 to-orange-50',   icon: Sun },
-  { range: [11, 13], label: 'Buổi trưa',  emoji: '🌤️', bg: 'from-blue-50 to-sky-50',        icon: CloudSun },
-  { range: [13, 17], label: 'Buổi chiều', emoji: '🌇', bg: 'from-amber-50 to-orange-50',    icon: CloudSun },
-  { range: [17, 19], label: 'Chiều tối',  emoji: '🌆', bg: 'from-orange-50 to-red-50',      icon: Moon },
-  { range: [19, 22], label: 'Buổi tối',   emoji: '🌙', bg: 'from-indigo-50 to-violet-50',   icon: Moon },
-  { range: [22, 24], label: 'Đêm khuya',  emoji: '🦉', bg: 'from-slate-50 to-indigo-50',    icon: Moon },
-  { range: [0, 5],   label: 'Nửa đêm',   emoji: '⭐', bg: 'from-gray-100 to-slate-100',    icon: Moon },
+  { range: [5, 7],   label: 'Sáng sớm',  emoji: '🌅', bg: 'from-orange-50 to-amber-50 dark:from-orange-950/20 dark:to-amber-950/20',    icon: Sun },
+  { range: [7, 11],  label: 'Buổi sáng',  emoji: '☀️', bg: 'from-yellow-50 to-orange-50 dark:from-yellow-950/20 dark:to-orange-950/20',   icon: Sun },
+  { range: [11, 13], label: 'Buổi trưa',  emoji: '🌤️', bg: 'from-blue-50 to-sky-50 dark:from-blue-950/20 dark:to-sky-950/20',        icon: CloudSun },
+  { range: [13, 17], label: 'Buổi chiều', emoji: '🌇', bg: 'from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20',    icon: CloudSun },
+  { range: [17, 19], label: 'Chiều tối',  emoji: '🌆', bg: 'from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20',      icon: Moon },
+  { range: [19, 22], label: 'Buổi tối',   emoji: '🌙', bg: 'from-indigo-50 to-violet-50 dark:from-indigo-950/20 dark:to-violet-950/20',   icon: Moon },
+  { range: [22, 24], label: 'Đêm khuya',  emoji: '🦉', bg: 'from-slate-50 to-indigo-50 dark:from-slate-900/30 dark:to-indigo-950/15',    icon: Moon },
+  { range: [0, 5],   label: 'Nửa đêm',   emoji: '⭐', bg: 'from-gray-100 to-slate-100 dark:from-gray-900/50 dark:to-slate-900/30',    icon: Moon },
 ]
 
 function getCurrentTimeSlot() {
@@ -213,7 +213,7 @@ export default function Dashboard() {
 
           {/* Current Time Slot */}
           <motion.div variants={fadeUp} custom={2}>
-            <div className={`bg-gradient-to-r ${currentSlot.bg} rounded-2xl p-4 border border-white/60`}>
+            <div className={`bg-gradient-to-r ${currentSlot.bg} rounded-2xl p-4 border border-white/60 dark:border-gray-800/40`}>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2.5">
                   <span className="text-2xl">{currentSlot.emoji}</span>
@@ -245,7 +245,7 @@ export default function Dashboard() {
                   <Calendar size={18} className="text-blue-500 dark:text-blue-400" />
                 </div>
                 <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Xem ngày</p>
-                <p className="text-xs text-gray-450 dark:text-gray-500 mt-0.5">Timeline hôm nay</p>
+                <p className="text-xs text-gray-550 dark:text-gray-400 mt-0.5">Timeline hôm nay</p>
               </button>
 
               <button
@@ -256,7 +256,7 @@ export default function Dashboard() {
                   <CheckSquare size={18} className="text-green-500 dark:text-green-400" />
                 </div>
                 <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">To-do</p>
-                <p className="text-xs text-gray-450 dark:text-gray-500 mt-0.5">Danh sách việc cần làm</p>
+                <p className="text-xs text-gray-550 dark:text-gray-400 mt-0.5">Danh sách việc cần làm</p>
               </button>
 
               <button
@@ -267,7 +267,7 @@ export default function Dashboard() {
                   <StickyNote size={18} className="text-amber-500 dark:text-amber-400" />
                 </div>
                 <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Ghi chú</p>
-                <p className="text-xs text-gray-450 dark:text-gray-500 mt-0.5">Ghi nhớ trong ngày</p>
+                <p className="text-xs text-gray-550 dark:text-gray-400 mt-0.5">Ghi nhớ trong ngày</p>
               </button>
 
               <button
@@ -278,7 +278,7 @@ export default function Dashboard() {
                   <Flame size={18} className="text-violet-500 dark:text-violet-400" />
                 </div>
                 <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">Thống kê</p>
-                <p className="text-xs text-gray-450 dark:text-gray-500 mt-0.5">Hoạt động tháng này</p>
+                <p className="text-xs text-gray-550 dark:text-gray-400 mt-0.5">Hoạt động tháng này</p>
               </button>
             </div>
           </motion.div>
@@ -316,7 +316,7 @@ export default function Dashboard() {
                         ? 'bg-orange-50 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-900/65'
                         : isPast
                           ? 'bg-gray-50/50 dark:bg-gray-800/30 opacity-60'
-                          : 'bg-white dark:bg-gray-850 border border-gray-50 dark:border-gray-800'
+                          : 'bg-white dark:bg-gray-800 border border-gray-50 dark:border-gray-800'
                     }`}
                   >
                     <span className="text-lg w-7 text-center">{slot.emoji}</span>
@@ -380,7 +380,7 @@ export default function Dashboard() {
                   <button
                     type="button"
                     onClick={() => { setShowAddPlan(false); setNewPlanText(''); }}
-                    className="px-3 py-1.5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-850"
+                    className="px-3 py-1.5 border border-gray-200 dark:border-gray-800 rounded-xl text-xs text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
                   >
                     Hủy
                   </button>
@@ -416,7 +416,7 @@ export default function Dashboard() {
                       <button
                         type="button"
                         onClick={() => handleDeletePlan(plan.id)}
-                        className="p-1 rounded-md text-gray-300 dark:text-gray-650 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800 opacity-0 group-hover:opacity-100 transition-opacity tap-highlight"
+                        className="p-1 rounded-md text-gray-300 dark:text-gray-500 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800 opacity-0 group-hover:opacity-100 transition-opacity tap-highlight"
                       >
                         <Trash2 size={12} />
                       </button>

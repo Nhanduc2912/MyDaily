@@ -181,7 +181,7 @@ export default function Settings() {
           <button
             onClick={handleSignOut}
             disabled={loggingOut}
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-red-100 dark:border-red-950/40 text-red-650 dark:text-red-400 font-semibold text-sm hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors tap-highlight"
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-red-100 dark:border-red-950/40 text-red-600 dark:text-red-400 font-semibold text-sm hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors tap-highlight"
           >
             <LogOut size={18} />
             {loggingOut ? 'Đang đăng xuất...' : 'Đăng xuất'}
@@ -293,7 +293,7 @@ export default function Settings() {
               )}
 
               {activeModal === 'help' && (
-                <div className="space-y-3 text-sm text-gray-650 dark:text-gray-300">
+                <div className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
                   <p>Cảm ơn bạn đã sử dụng <strong>MyDaily</strong>! Hệ thống hỗ trợ ghi lại khoảnh khắc trong ngày và chia sẻ cùng bạn bè.</p>
                   <p>Nếu bạn gặp sự cố hoặc muốn đóng góp ý kiến, vui lòng gửi phản hồi qua email:</p>
                   <a href="mailto:support@mydaily.com" className="text-orange-500 font-semibold block hover:underline">
