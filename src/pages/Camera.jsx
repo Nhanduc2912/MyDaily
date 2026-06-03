@@ -192,6 +192,7 @@ export default function Camera() {
           theme_id: selectedTheme?.id || null,
           custom_title: customTitle || null,
           visibility,
+          is_deleted: false,
         })
 
       if (postError) throw postError

@@ -139,8 +139,7 @@ export default function Friends() {
         {actions}
       </div>
     </motion.div>
-  )
-
+  ) 
   return (
     <AppShell>
       <div className="px-4 pt-4 pb-24">
