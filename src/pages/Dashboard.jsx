@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuthStore } from '@/store/authStore'
 import AppShell from '@/components/layout/AppShell'
 import dayjs, { getMyDailyDate, formatDate } from '@/lib/dayjs'
-import { Camera, ChevronRight, Flame, CheckSquare, StickyNote, Calendar, Plus, Sun, Moon, CloudSun } from 'lucide-react'
+import { Camera, ChevronRight, Flame, CheckSquare, StickyNote, Calendar, Plus, Sun, Moon, CloudSun, Trash2, Check } from 'lucide-react'
+import { supabase } from '@/lib/supabaseClient'
+import toast from 'react-hot-toast'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 15 },
@@ -43,10 +45,47 @@ function getGreeting() {
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const { profile } = useAuthStore()
+  const { profile, fetchProfile } = useAuthStore()
   const [currentSlot, setCurrentSlot] = useState(getCurrentTimeSlot())
   const [now, setNow] = useState(dayjs())
   const todayDate = getMyDailyDate()
+
+  // Plans states
+  const [plans, setPlans] = useState([])
+  const [plansLoading, setPlansLoading] = useState(true)
+  const [showAddPlan, setShowAddPlan] = useState(false)
+  const [newPlanText, setNewPlanText] = useState('')
+
+  const fetchPlans = useCallback(async () => {
+    if (!profile?.id) return
+    try {
+      const tomorrowDate = dayjs(todayDate).add(1, 'day').format('YYYY-MM-DD')
+      const { data, error } = await supabase
+        .from('day_plans')
+        .select('*')
+        .eq('user_id', profile.id)
+        .eq('plan_date', tomorrowDate)
+        .eq('is_deleted', false)
+        .order('sort_order')
+      if (!error && data) {
+        setPlans(data)
+      }
+    } catch (err) {
+      console.error('Error fetching plans:', err)
+    } finally {
+      setPlansLoading(false)
+    }
+  }, [profile, todayDate])
+
+  useEffect(() => {
+    if (profile?.id) {
+      fetchProfile(profile.id)
+      const timer = setTimeout(() => {
+        fetchPlans()
+      }, 0)
+      return () => clearTimeout(timer)
+    }
+  }, [profile?.id, fetchProfile, fetchPlans])
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -55,6 +94,67 @@ export default function Dashboard() {
     }, 60000)
     return () => clearInterval(timer)
   }, [])
+
+  const handleAddPlan = async (e) => {
+    if (e) e.preventDefault()
+    if (!newPlanText.trim() || !profile?.id) return
+
+    try {
+      const tomorrowDate = dayjs(todayDate).add(1, 'day').format('YYYY-MM-DD')
+      const { data, error } = await supabase
+        .from('day_plans')
+        .insert({
+          user_id: profile.id,
+          plan_date: tomorrowDate,
+          content: newPlanText.trim(),
+        })
+        .select()
+        .single()
+      
+      if (error) throw error
+      if (data) {
+        setPlans(prev => [...prev, data])
+        setNewPlanText('')
+        setShowAddPlan(false)
+        toast.success('Đã thêm kế hoạch ngày mai!')
+      }
+    } catch (err) {
+      console.error(err)
+      toast.error('Lỗi khi thêm kế hoạch')
+    }
+  }
+
+  const handleTogglePlan = async (id, isDone) => {
+    // optimistic update
+    setPlans(prev => prev.map(p => p.id === id ? { ...p, is_done: !isDone, done_at: !isDone ? new Date().toISOString() : null } : p))
+    try {
+      const { error } = await supabase
+        .from('day_plans')
+        .update({ is_done: !isDone, done_at: !isDone ? new Date().toISOString() : null })
+        .eq('id', id)
+      if (error) throw error
+    } catch (err) {
+      console.error(err)
+      toast.error('Lỗi khi cập nhật kế hoạch')
+      fetchPlans()
+    }
+  }
+
+  const handleDeletePlan = async (id) => {
+    setPlans(prev => prev.filter(p => p.id !== id))
+    try {
+      const { error } = await supabase
+        .from('day_plans')
+        .update({ is_deleted: true, deleted_at: new Date().toISOString() })
+        .eq('id', id)
+      if (error) throw error
+      toast.success('Đã xóa kế hoạch!')
+    } catch (err) {
+      console.error(err)
+      toast.error('Lỗi khi xóa kế hoạch')
+      fetchPlans()
+    }
+  }
 
   const greeting = getGreeting()
 
@@ -78,8 +178,12 @@ export default function Dashboard() {
               onClick={() => navigate('/profile')}
               className="tap-highlight"
             >
-              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-orange-300 to-orange-500 flex items-center justify-center text-white font-bold text-base shadow-md shadow-orange-200/50">
-                {(profile?.display_name || profile?.username || 'U').charAt(0).toUpperCase()}
+              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-orange-300 to-orange-500 flex items-center justify-center text-white font-bold text-base shadow-md shadow-orange-200/50 overflow-hidden">
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  (profile?.display_name || profile?.username || 'U').charAt(0).toUpperCase()
+                )}
               </div>
             </button>
           </motion.div>
@@ -245,13 +349,85 @@ export default function Dashboard() {
             <div className="card p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-bold text-gray-800">📋 Kế hoạch ngày mai</h3>
-                <button className="text-xs text-orange-600 font-semibold flex items-center gap-0.5 tap-highlight">
-                  <Plus size={14} /> Thêm
-                </button>
+                {!showAddPlan && (
+                  <button
+                    onClick={() => setShowAddPlan(true)}
+                    className="text-xs text-orange-600 font-semibold flex items-center gap-0.5 tap-highlight"
+                  >
+                    <Plus size={14} /> Thêm
+                  </button>
+                )}
               </div>
-              <p className="text-xs text-gray-400 text-center py-4">
-                Chưa có kế hoạch nào. Nhấn "Thêm" để bắt đầu.
-              </p>
+
+              {/* Add plan input inline */}
+              {showAddPlan && (
+                <form onSubmit={handleAddPlan} className="flex gap-2 mb-3">
+                  <input
+                    type="text"
+                    value={newPlanText}
+                    onChange={(e) => setNewPlanText(e.target.value)}
+                    placeholder="Nhập kế hoạch..."
+                    className="input-base text-xs py-1.5 flex-1"
+                    autoFocus
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newPlanText.trim()}
+                    className="btn btn-primary rounded-xl px-3 py-1.5 text-xs disabled:opacity-40"
+                  >
+                    Thêm
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowAddPlan(false); setNewPlanText(''); }}
+                    className="px-3 py-1.5 border border-gray-200 rounded-xl text-xs text-gray-500 hover:bg-gray-50"
+                  >
+                    Hủy
+                  </button>
+                </form>
+              )}
+
+              {plansLoading ? (
+                <div className="space-y-1.5 py-2">
+                  <div className="skeleton h-8 w-full rounded-lg" />
+                  <div className="skeleton h-8 w-full rounded-lg" />
+                </div>
+              ) : plans.length > 0 ? (
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  {plans.map((plan) => (
+                    <div
+                      key={plan.id}
+                      className="flex items-center gap-2.5 p-2 rounded-xl border border-gray-50 bg-gray-50/30 group"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleTogglePlan(plan.id, plan.is_done)}
+                        className={`w-5 h-5 rounded-md border flex items-center justify-center flex-shrink-0 transition-colors ${
+                          plan.is_done
+                            ? 'bg-blue-500 border-blue-500 text-white'
+                            : 'border-gray-300 bg-white hover:border-gray-400'
+                        }`}
+                      >
+                        {plan.is_done && <Check size={12} strokeWidth={3} />}
+                      </button>
+                      <span className={`text-xs flex-1 truncate ${plan.is_done ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                        {plan.content}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleDeletePlan(plan.id)}
+                        className="p-1 rounded-md text-gray-300 hover:text-red-500 hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity tap-highlight"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400 text-center py-4">
+                  Chưa có kế hoạch nào. Nhấn "Thêm" để bắt đầu.
+                </p>
+              )}
             </div>
           </motion.div>
         </motion.div>
